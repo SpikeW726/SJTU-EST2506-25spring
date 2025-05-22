@@ -1,0 +1,11 @@
+.\objects\finalproject.o: FinalProject.c
+.\objects\finalproject.o: C:\Keil_v5.28\ARM\ARMCC\Bin\..\include\stdint.h
+.\objects\finalproject.o: C:\Keil_v5.28\ARM\ARMCC\Bin\..\include\stdbool.h
+.\objects\finalproject.o: .\inc\hw_memmap.h
+.\objects\finalproject.o: .\driverlib\debug.h
+.\objects\finalproject.o: .\driverlib\gpio.h
+.\objects\finalproject.o: .\inc\hw_i2c.h
+.\objects\finalproject.o: .\inc\hw_types.h
+.\objects\finalproject.o: .\driverlib\i2c.h
+.\objects\finalproject.o: .\driverlib\pin_map.h
+.\objects\finalproject.o: .\driverlib\sysctl.h
