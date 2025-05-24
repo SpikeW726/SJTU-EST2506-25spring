@@ -94,7 +94,7 @@ int main(void)
 		// result = I2C0_WriteByte(TCA6424_I2CADDR,TCA6424_OUTPUT_PORT1,seg7[1]);						//write port 1 	控制显示的数字			
 		
 		
-		// result = I2C0_WriteByte(PCA9557_I2CADDR,PCA9557_OUTPUT,0x0); // ??这里不是应该把所有LED都置低电平熄灭了吗？	
+		// result = I2C0_WriteByte(PCA9557_I2CADDR,PCA9557_OUTPUT,0x0); //底板LED低电平有效	
 
 		// GPIOPinWrite(GPIO_PORTF_BASE, GPIO_PIN_0, GPIO_PIN_0);												// Turn on the PF0 
 		// Delay(800000);

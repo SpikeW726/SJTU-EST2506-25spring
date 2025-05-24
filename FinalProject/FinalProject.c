@@ -48,6 +48,8 @@ void		S800_I2C0_Init(void);
 void        Power_On_Init(void);
 void        Show(uint8_t*);
 void        Blank(void);
+void        SwitchMode(void);
+void        ChooseChangeBit(void);
 volatile uint8_t result; // 接收I2C0_WriteByte函数返回的错误类型，0代表无错
 uint32_t ui32SysClock;
 uint8_t num_seg7[] = {0x3f,0x06,0x5b,0x4f,0x66,0x6d,0x7d,0x07,0x7f,0x6f,
@@ -56,6 +58,8 @@ uint8_t num_seg7[] = {0x3f,0x06,0x5b,0x4f,0x66,0x6d,0x7d,0x07,0x7f,0x6f,
 					  0x3e,0x1c,0x7e,0x64,0x6e,0x59,0x0}; // 0-9+a-z,最后一个为熄灭
 uint32_t num_count,time_count = 0;
 uint8_t is_100ms_int = 1;
+uint8_t* Buffer; // 全局要通过数码管显示的内容都要进入这个Buffer数组
+
 
 void SysTickIntHandler(void){
 	// 数码管
@@ -96,18 +100,24 @@ int main(void)
 
 	while (1)
 	{
-		// result = I2C0_WriteByte(TCA6424_I2CADDR,TCA6424_OUTPUT_PORT2,(uint8_t)(128));					//write port 2	控制哪一位数码管亮 1-8
-		// result = I2C0_WriteByte(TCA6424_I2CADDR,TCA6424_OUTPUT_PORT1,num_seg7[12]);						//write port 1 	控制显示的数字			
-		
-		
-		// result = I2C0_WriteByte(PCA9557_I2CADDR,PCA9557_OUTPUT,0x0); // 底板LED低电平有效	
-
-		// GPIOPinWrite(GPIO_PORTF_BASE, GPIO_PIN_0, GPIO_PIN_0);												// Turn on the PF0 
-		// Delay(800000);
-		// GPIOPinWrite(GPIO_PORTF_BASE, GPIO_PIN_0, 0x0);														// Turn off the PF0.
-		// Delay(800000);	
-
+		result = I2C0_ReadByte(TCA6424_I2CADDR, TCA6424_INPUT_PORT0); // 不断读取8个按键的状态,根据读取值获悉谁被按下,然后进行相应处理
+		if(result == 0xFE){
+			SwitchMode();
+		}
+		else if (result == 0xFD){
+			ChooseChangeBit();
+		}
 	}
+}
+
+void SwitchMode(void){
+	uint8_t test[] = {1,1,1,1,1,1,1,1};
+	Show(test);
+}
+
+void ChooseChangeBit(){
+	uint8_t test[] = {1,1,1,1,1,1,1,1};
+	Show(test);
 }
 
 void Delay(uint32_t value)
@@ -153,16 +163,20 @@ void S800_I2C0_Init(void)
 void Power_On_Init(void){
 	uint8_t ID[] = {4,2,9,1,0,0,1,6};
 	uint8_t Name[] = {'w'-'a'+10,'z'-'a'+10,'h'-'a'+10,36,36,36,36,36};
-	int i;
+	int i,j;
 	for(i=0; i<3; i++){ // 学号后八位和LED闪烁3次
 		result = I2C0_WriteByte(PCA9557_I2CADDR,PCA9557_OUTPUT,0x0);
-		Show(ID);
+		for(j=0; j<20; j++){ // 这个循环控制的是显示时间长短
+			Show(ID);
+		}
 		result = I2C0_WriteByte(PCA9557_I2CADDR,PCA9557_OUTPUT,0xFF);
 		Blank();
-		Delay(800000);
+		Delay(800000); // 这个Delay控制的是闪烁间隔时长
 	}
 	for(i=0; i<3; i++){ // 名字闪烁3次
-		Show(Name);
+		for(j=0; j<20; j++){
+			Show(Name);
+		}
 		Blank();
 		Delay(800000);
 	}
@@ -177,15 +191,12 @@ void Blank(){
 }
 
 void Show(uint8_t* Buffer){ // 先默认输出内容是八位
-	int i,j = 0;
-	while(j < 20){
-		for(i=0; i<8; i++){
-			result = I2C0_WriteByte(TCA6424_I2CADDR,TCA6424_OUTPUT_PORT2,(uint8_t)(1<<i));
-			result = I2C0_WriteByte(TCA6424_I2CADDR,TCA6424_OUTPUT_PORT1,num_seg7[Buffer[i]]);
-			Delay(10000);
-			result = I2C0_WriteByte(TCA6424_I2CADDR,TCA6424_OUTPUT_PORT1,0x0);
-		}
-		j++;
+	int i = 0;
+	for(i=0; i<8; i++){
+		result = I2C0_WriteByte(TCA6424_I2CADDR,TCA6424_OUTPUT_PORT2,(uint8_t)(1<<i));
+		result = I2C0_WriteByte(TCA6424_I2CADDR,TCA6424_OUTPUT_PORT1,num_seg7[Buffer[i]]);
+		Delay(10000); // 这个Delay控制的是每一位显示之间的间隔,不能太大,否则就不是同时显示所有位,而是走马灯
+		result = I2C0_WriteByte(TCA6424_I2CADDR,TCA6424_OUTPUT_PORT1,0x0);
 	}
 }
 
