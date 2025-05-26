@@ -1,4 +1,3 @@
-
 #include <stdint.h>
 #include <stdbool.h>
 #include "hw_memmap.h"
@@ -39,17 +38,24 @@
 
 
 
-
-void 		Delay(uint32_t value);
-void 		S800_GPIO_Init(void);
+// 函数声明
 uint8_t 	I2C0_WriteByte(uint8_t DevAddr, uint8_t RegAddr, uint8_t WriteData);
 uint8_t 	I2C0_ReadByte(uint8_t DevAddr, uint8_t RegAddr);
+uint8_t     ReadKey();
+void 		Delay(uint32_t value);
+void 		S800_GPIO_Init(void);
 void		S800_I2C0_Init(void);
 void        Power_On_Init(void);
 void        Show(uint8_t*);
 void        Blank(void);
-void        SwitchMode(void);
+// void        SwitchMode(void);
 void        ChooseChangeBit(void);
+void        ShowTime(void);
+void        ShowDate(void);
+void        ShowAlarm(void);
+
+
+// 全局变量
 volatile uint8_t result; // 接收I2C0_WriteByte函数返回的错误类型，0代表无错
 uint32_t ui32SysClock;
 uint8_t num_seg7[] = {0x3f,0x06,0x5b,0x4f,0x66,0x6d,0x7d,0x07,0x7f,0x6f,
@@ -59,7 +65,20 @@ uint8_t num_seg7[] = {0x3f,0x06,0x5b,0x4f,0x66,0x6d,0x7d,0x07,0x7f,0x6f,
 uint32_t num_count,time_count = 0;
 uint8_t is_100ms_int = 1;
 uint8_t* Buffer; // 全局要通过数码管显示的内容都要进入这个Buffer数组
+// 三种模式的初始化显示数组
+uint8_t Time_buffer[] = {0,8,0,0,0,0,36,36};
+uint8_t Date_buffer[] = {2,5,0,5,2,6,36,36};
+uint8_t Alarm_buffer[] = {0,0,0,5,0,0,36,36};
 
+typedef enum {
+    MODE_DATE,
+    MODE_TIME,
+    MODE_ALARM,
+} DisplayMode;
+
+DisplayMode currentMode = MODE_DATE;
+bool updateDisplay = true; // 是否更新显示内容,当按下SW1切换模式和时间/闹钟模式每秒变化时为True
+uint8_t currentKey;
 
 void SysTickIntHandler(void){
 	// 数码管
@@ -100,19 +119,66 @@ int main(void)
 
 	while (1)
 	{
-		result = I2C0_ReadByte(TCA6424_I2CADDR, TCA6424_INPUT_PORT0); // 不断读取8个按键的状态,根据读取值获悉谁被按下,然后进行相应处理
-		if(result == 0xFE){
-			SwitchMode();
-		}
-		else if (result == 0xFD){
-			ChooseChangeBit();
+        // currentKey = I2C0_ReadByte(TCA6424_I2CADDR, TCA6424_INPUT_PORT0);
+
+        // // 按键检测消抖
+        // if(currentKey == 0xFD) {
+        //     currentMode = (currentMode + 1) % 3;
+        //     updateDisplay = true;
+		// 	Delay(300); // 消抖
+        // }
+
+		static uint8_t lastKeyState = 0xFF;
+        uint8_t currentKey = ReadKey();
+
+        // 按键检测（下降沿触发）
+        if(!(currentKey & 0x01) && (lastKeyState & 0x01)) {
+            currentMode = (currentMode + 1) % 3;
+            updateDisplay = true;
+        }
+        lastKeyState = currentKey;
+		
+		if(updateDisplay) {
+			// updateDisplay = false;
+            switch(currentMode) {
+            case MODE_TIME:  ShowTime(); break;
+            case MODE_DATE:  ShowDate(); break;
+            case MODE_ALARM: ShowAlarm(); break;
+            }
 		}
 	}
 }
 
-void SwitchMode(void){
-	uint8_t test[] = {1,1,1,1,1,1,1,1};
-	Show(test);
+uint8_t ReadKey(){
+	result = I2C0_ReadByte(TCA6424_I2CADDR, TCA6424_INPUT_PORT0);
+	return result;
+}
+
+void ShowTime(){
+	Buffer = Time_buffer;
+	Show(Buffer);
+	while (currentMode == MODE_TIME){
+		Show(Buffer);
+		if(ReadKey() != 0xFF) break;
+	}
+}
+
+void ShowAlarm(){
+	Buffer = Alarm_buffer;
+	Show(Buffer);
+	while (currentMode == MODE_ALARM){
+		Show(Buffer);
+		if(ReadKey() != 0xFF) break;
+	}
+}
+
+void ShowDate(){
+	Buffer = Date_buffer;
+	Show(Buffer);
+	while (currentMode == MODE_DATE){
+		Show(Buffer);
+		if(ReadKey() != 0xFF) break;
+	}
 }
 
 void ChooseChangeBit(){
@@ -126,39 +192,6 @@ void Delay(uint32_t value)
 	for(ui32Loop = 0; ui32Loop < value; ui32Loop++){};
 }
 
-void S800_GPIO_Init(void)
-{
-	SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOF);						//Enable PortF
-	while(!SysCtlPeripheralReady(SYSCTL_PERIPH_GPIOF));			//Wait for the GPIO moduleF ready
-	SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOJ);						//Enable PortJ	
-	while(!SysCtlPeripheralReady(SYSCTL_PERIPH_GPIOJ));			//Wait for the GPIO moduleJ ready	
-	
-  	GPIOPinTypeGPIOOutput(GPIO_PORTF_BASE, GPIO_PIN_0);			//Set PF0 as Output pin; LED
-	GPIOPinTypeGPIOInput(GPIO_PORTJ_BASE,GPIO_PIN_0 | GPIO_PIN_1); //Set the PJ0,PJ1 as input pin; Button
-	GPIOPadConfigSet(GPIO_PORTJ_BASE,GPIO_PIN_0 | GPIO_PIN_1,GPIO_STRENGTH_2MA,GPIO_PIN_TYPE_STD_WPU); // Set Button mode
-}
-
-void S800_I2C0_Init(void)
-{
-	uint8_t result;
-  	SysCtlPeripheralEnable(SYSCTL_PERIPH_I2C0); // 初始化i2c模块
-  	SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOB); // 使用I2C模块0，引脚配置为I2C0SCL--PB2、I2C0SDA--PB3
-	GPIOPinConfigure(GPIO_PB2_I2C0SCL); // 配置PB2为I2C0SCL
-  	GPIOPinConfigure(GPIO_PB3_I2C0SDA); // 配置PB3为I2C0SDA
-  	GPIOPinTypeI2CSCL(GPIO_PORTB_BASE, GPIO_PIN_2); // I2C将GPIO_PIN_2用作SCL
-  	GPIOPinTypeI2C(GPIO_PORTB_BASE, GPIO_PIN_3); // I2C将GPIO_PIN_3用作SDA
-
-	I2CMasterInitExpClk(I2C0_BASE,ui32SysClock, true);										//config I2C0 400k ?不是16M吗
-	I2CMasterEnable(I2C0_BASE);	
-
-	result = I2C0_WriteByte(TCA6424_I2CADDR,TCA6424_CONFIG_PORT0,0x0ff);		//config port 0 as input
-	result = I2C0_WriteByte(TCA6424_I2CADDR,TCA6424_CONFIG_PORT1,0x0);			//config port 1 as output 控制数码管段选（显示数字几）
-	result = I2C0_WriteByte(TCA6424_I2CADDR,TCA6424_CONFIG_PORT2,0x0);			//config port 2 as output 控制数码管位选（哪一位显示数字）
-
-	result = I2C0_WriteByte(PCA9557_I2CADDR,PCA9557_CONFIG,0x00);				//config port as output
-	result = I2C0_WriteByte(PCA9557_I2CADDR,PCA9557_OUTPUT,0x0ff);				//turn off? the LED1-8, 这里输出的数据为2位16进制数，即8位2进制数，每一位代表一个LED的高/低电平
-	
-}
 
 void Power_On_Init(void){
 	uint8_t ID[] = {4,2,9,1,0,0,1,6};
@@ -198,6 +231,40 @@ void Show(uint8_t* Buffer){ // 先默认输出内容是八位
 		Delay(10000); // 这个Delay控制的是每一位显示之间的间隔,不能太大,否则就不是同时显示所有位,而是走马灯
 		result = I2C0_WriteByte(TCA6424_I2CADDR,TCA6424_OUTPUT_PORT1,0x0);
 	}
+}
+
+void S800_GPIO_Init(void)
+{
+	SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOF);						//Enable PortF
+	while(!SysCtlPeripheralReady(SYSCTL_PERIPH_GPIOF));			//Wait for the GPIO moduleF ready
+	SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOJ);						//Enable PortJ	
+	while(!SysCtlPeripheralReady(SYSCTL_PERIPH_GPIOJ));			//Wait for the GPIO moduleJ ready	
+	
+  	GPIOPinTypeGPIOOutput(GPIO_PORTF_BASE, GPIO_PIN_0);			//Set PF0 as Output pin; LED
+	GPIOPinTypeGPIOInput(GPIO_PORTJ_BASE,GPIO_PIN_0 | GPIO_PIN_1); //Set the PJ0,PJ1 as input pin; Button
+	GPIOPadConfigSet(GPIO_PORTJ_BASE,GPIO_PIN_0 | GPIO_PIN_1,GPIO_STRENGTH_2MA,GPIO_PIN_TYPE_STD_WPU); // Set Button mode
+}
+
+void S800_I2C0_Init(void)
+{
+	uint8_t result;
+  	SysCtlPeripheralEnable(SYSCTL_PERIPH_I2C0); // 初始化i2c模块
+  	SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOB); // 使用I2C模块0，引脚配置为I2C0SCL--PB2、I2C0SDA--PB3
+	GPIOPinConfigure(GPIO_PB2_I2C0SCL); // 配置PB2为I2C0SCL
+  	GPIOPinConfigure(GPIO_PB3_I2C0SDA); // 配置PB3为I2C0SDA
+  	GPIOPinTypeI2CSCL(GPIO_PORTB_BASE, GPIO_PIN_2); // I2C将GPIO_PIN_2用作SCL
+  	GPIOPinTypeI2C(GPIO_PORTB_BASE, GPIO_PIN_3); // I2C将GPIO_PIN_3用作SDA
+
+	I2CMasterInitExpClk(I2C0_BASE,ui32SysClock, true);										//config I2C0 400k ?不是16M吗
+	I2CMasterEnable(I2C0_BASE);	
+
+	result = I2C0_WriteByte(TCA6424_I2CADDR,TCA6424_CONFIG_PORT0,0x0ff);		//config port 0 as input
+	result = I2C0_WriteByte(TCA6424_I2CADDR,TCA6424_CONFIG_PORT1,0x0);			//config port 1 as output 控制数码管段选（显示数字几）
+	result = I2C0_WriteByte(TCA6424_I2CADDR,TCA6424_CONFIG_PORT2,0x0);			//config port 2 as output 控制数码管位选（哪一位显示数字）
+
+	result = I2C0_WriteByte(PCA9557_I2CADDR,PCA9557_CONFIG,0x00);				//config port as output
+	result = I2C0_WriteByte(PCA9557_I2CADDR,PCA9557_OUTPUT,0x0ff);				//turn off? the LED1-8, 这里输出的数据为2位16进制数，即8位2进制数，每一位代表一个LED的高/低电平
+	
 }
 
 uint8_t I2C0_WriteByte(uint8_t DevAddr, uint8_t RegAddr, uint8_t WriteData)
