@@ -1,5 +1,6 @@
 #include <stdint.h>
 #include <stdbool.h>
+#include <string.h>
 #include "hw_memmap.h"
 #include "debug.h"
 #include "gpio.h"
@@ -8,6 +9,8 @@
 #include "i2c.h"
 #include "pin_map.h"
 #include "sysctl.h"
+#include "uart.h"
+#include "hw_ints.h"
 //*****************************************************************************
 //
 //I2C GPIO chip address and resigster define
@@ -36,15 +39,29 @@
 #define TCA6424_OUTPUT_PORT1			0x05
 #define TCA6424_OUTPUT_PORT2			0x06
 
+typedef enum {
+    MODE_DATE,
+    MODE_TIME,
+    MODE_ALARM
+} DisplayMode;
 
+typedef enum {
+    SET_MODE,
+    SET_VALUE,
+    RUN,
+	LEFT_FLOAT,
+	RIGHT_FLOAT
+} State;
 
 // 函数声明
 uint8_t 	I2C0_WriteByte(uint8_t DevAddr, uint8_t RegAddr, uint8_t WriteData);
 uint8_t 	I2C0_ReadByte(uint8_t DevAddr, uint8_t RegAddr);
-uint8_t     ReadKey();
+uint8_t     ReadKey(void);
+State       CheckStateSwitch(uint8_t,State);
 void 		Delay(uint32_t value);
 void 		S800_GPIO_Init(void);
 void		S800_I2C0_Init(void);
+void		S800_UART_Init(void);
 void        Power_On_Init(void);
 void        Show(uint8_t*);
 void        Blank(void);
@@ -58,94 +75,159 @@ void        ShowAlarm(void);
 // 全局变量
 volatile uint8_t result; // 接收I2C0_WriteByte函数返回的错误类型，0代表无错
 uint32_t ui32SysClock;
+uint32_t ui32SysClock,ui32IntPriorityGroup,ui32IntPriorityMask;
+uint32_t ui32IntPrioritySystick,ui32IntPriorityUart0;
 uint8_t num_seg7[] = {0x3f,0x06,0x5b,0x4f,0x66,0x6d,0x7d,0x07,0x7f,0x6f,
 					  0x77,0x7c,0x39,0x5e,0x79,0x71,0x3d,0x76,0x0f,0x0e,
 					  0x75,0x38,0x37,0x54,0x5c,0x73,0x67,0x31,0x49,0x78,
-					  0x3e,0x1c,0x7e,0x64,0x6e,0x59,0x0}; // 0-9+a-z,最后一个为熄灭
-uint32_t num_count,time_count = 0;
-uint8_t is_100ms_int = 1;
-uint8_t* Buffer; // 全局要通过数码管显示的内容都要进入这个Buffer数组
-// 三种模式的初始化显示数组
-uint8_t Time_buffer[] = {0,8,0,0,0,0,36,36};
-uint8_t Date_buffer[] = {2,5,0,5,2,6,36,36};
-uint8_t Alarm_buffer[] = {0,0,0,5,0,0,36,36};
+					  0x3e,0x1c,0x7e,0x64,0x6e,0x59,0x0,
+					  0x3f|0x80,0x06|0x80,0x5b|0x80,0x4f|0x80,0x66|0x80,0x6d|0x80,0x7d|0x80,0x07|0x80,0x7f|0x80,0x6f|0x80,}; // 0-9+a-z,第36位为熄灭,最后一行是带小数点的1-9
 
-typedef enum {
-    MODE_DATE,
-    MODE_TIME,
-    MODE_ALARM,
-} DisplayMode;
+uint8_t Buffer[8]; // 全局要通过数码管显示的内容都要进入这个Buffer数组
+
+// 各种显示数组初始化
+uint8_t Time_buffer[] = {0,8,0,0,0,0,36,36};
+uint8_t Date_buffer[] = {2,0,2,5,0,5,2,8};
+uint8_t Alarm_buffer[] = {0,0,0,5,0,0,36,36};
+uint8_t Blank_buffer[] = {36,36,36,36,36,36,36,36};
+uint8_t Float_buffer[16] = {0X0};
 
 DisplayMode currentMode = MODE_DATE;
-bool updateDisplay = true; // 是否更新显示内容,当按下SW1切换模式和时间/闹钟模式每秒变化时为True
-uint8_t currentKey;
+State currentState = SET_MODE;
+uint8_t currentKey = 0xFF;
+uint8_t lastKeyState = 0xFF;
 
 void SysTickIntHandler(void){
-	// 数码管
-	result = I2C0_WriteByte(TCA6424_I2CADDR,TCA6424_OUTPUT_PORT2,(uint8_t)(1<<(num_count)));			//write port 2	控制哪一位数码管亮 1-8
-	result = I2C0_WriteByte(TCA6424_I2CADDR,TCA6424_OUTPUT_PORT1,num_seg7[num_count]);			//write port 1 	控制显示的数字			
-	is_100ms_int = 0;
-	// LED
-	result = I2C0_WriteByte(PCA9557_I2CADDR,PCA9557_OUTPUT,(uint8_t)~(1<<(num_count)));
-
-	num_count++;
-	num_count %= 8;
-
-	time_count++;
-	time_count %= 10;
-	if(time_count == 0){
-		is_100ms_int = 1;
+	switch (currentState){
+		case LEFT_FLOAT:{
+			static uint8_t float_cnt = 0;
+			int i;
+			for(i = float_cnt; i<8; i++){
+				Buffer[i] = Float_buffer[i];
+			}
+			float_cnt += 1;
+			break;
+		}
+		case RIGHT_FLOAT:{
+			break;
+		}
 	}
 }
 
-int main(void)
-{
+void UART0_Handler(void){
+	int32_t uart0_int_status;
+  	uart0_int_status = UARTIntStatus(UART0_BASE, true);		// Get the interrrupt status.
+
+  	UARTIntClear(UART0_BASE, uart0_int_status);						//Clear the asserted interrupts
+
+  	while(UARTCharsAvail(UART0_BASE)){    							// Loop while there are characters in the receive FIFO.
+		//Read the next character from the UART and write it back to the UART.
+		UARTCharPutNonBlocking(UART0_BASE,UARTCharGetNonBlocking(UART0_BASE));
+		GPIOPinWrite(GPIO_PORTN_BASE, GPIO_PIN_1,GPIO_PIN_1 );		
+	}
+	GPIOPinWrite(GPIO_PORTN_BASE, GPIO_PIN_1, 0);
+}
+
+int main(void){
 	//use internal 16M oscillator, HSI
     ui32SysClock = SysCtlClockFreqSet((SYSCTL_XTAL_16MHZ |SYSCTL_OSC_INT |SYSCTL_USE_OSC), 16000000);
-	SysTickPeriodSet(ui32SysClock/10); // 中断周期为100ms	
+	SysTickPeriodSet(ui32SysClock); // 中断周期为1s	
 	
 	S800_GPIO_Init();
 	S800_I2C0_Init();
+	S800_UART_Init();
 	Power_On_Init();
 
-    // // Enable interrupts to the processor.
-    // IntMasterEnable();
+	// 启用中断
+    SysTickIntEnable();
+    SysTickEnable();
+	IntEnable(INT_UART0);
+  	UARTIntEnable(UART0_BASE, UART_INT_RX | UART_INT_RT);	//Enable UART0 RX,TX interrupt
+	IntMasterEnable();
 
-    // // Enable the SysTick Interrupt.
-    // SysTickIntEnable();
+	// 配置中断优先级,UART中断比Systick中断优先级高
+	ui32IntPriorityMask	= IntPriorityMaskGet();
+	IntPriorityGroupingSet(3);														//Set all priority to pre-emtption priority
+	
+	IntPrioritySet(INT_UART0,3);													//Set INT_UART0 to highest priority
+	IntPrioritySet(FAULT_SYSTICK,0x0e0);									//Set INT_SYSTICK to lowest priority
+	
+	ui32IntPriorityGroup = IntPriorityGroupingGet();
 
-    // // Enable SysTick.
-    // SysTickEnable();
-
-	while (1)
-	{
-        // currentKey = I2C0_ReadByte(TCA6424_I2CADDR, TCA6424_INPUT_PORT0);
-
-        // // 按键检测消抖
-        // if(currentKey == 0xFD) {
-        //     currentMode = (currentMode + 1) % 3;
-        //     updateDisplay = true;
-		// 	Delay(300); // 消抖
-        // }
-
-		static uint8_t lastKeyState = 0xFF;
-        uint8_t currentKey = ReadKey();
-
-        // 按键检测（下降沿触发）
-        if(!(currentKey & 0x01) && (lastKeyState & 0x01)) {
-            currentMode = (currentMode + 1) % 3;
-            updateDisplay = true;
-        }
-        lastKeyState = currentKey;
+	ui32IntPriorityUart0 = IntPriorityGet(INT_UART0);
+	ui32IntPrioritySystick = IntPriorityGet(FAULT_SYSTICK);
+	
+	while (1){	
 		
-		if(updateDisplay) {
-			// updateDisplay = false;
-            switch(currentMode) {
-            case MODE_TIME:  ShowTime(); break;
-            case MODE_DATE:  ShowDate(); break;
-            case MODE_ALARM: ShowAlarm(); break;
-            }
+		UARTStringPut((uint8_t *)"\r\nmain-loop\r\n");
+		Show(Buffer);
+		currentKey = ReadKey();
+
+		switch (currentState){
+			case SET_MODE:{
+				// 按键检测（下降沿触发）
+				if(!(currentKey & 0x01) && (lastKeyState & 0x01)) {
+					currentMode = (currentMode + 1) % 3;
+				}
+				currentState = CheckStateSwitch(currentKey, currentState);
+				lastKeyState = currentKey;
+
+				switch(currentMode) {
+				case MODE_TIME:  ShowTime(); break;
+				case MODE_DATE:  ShowDate(); break;
+				case MODE_ALARM: ShowAlarm(); break;
+				}
+
+				break;
+			}
+			case LEFT_FLOAT:{
+				memcpy(Float_buffer, Date_buffer, sizeof(Date_buffer));
+				memcpy(Float_buffer+8, Time_buffer, sizeof(Time_buffer));
+
+				// if(!(currentKey & 0x40) && (lastKeyState & 0x40)) {
+
+				// }
+
+				currentState = CheckStateSwitch(currentKey, currentState);
+				lastKeyState = currentKey;
+
+				break;
+			}
+			case RIGHT_FLOAT:{
+				int i;
+				for (i = 0; i < 8; i++){
+					Buffer[i] = 7-i;
+				}
+				// if(!(currentKey & 0x20) && (lastKeyState & 0x20)) {
+					
+				// }
+				currentState = CheckStateSwitch(currentKey, currentState);
+				lastKeyState = currentKey;
+
+				break;
+			}
 		}
+	}
+}
+
+State CheckStateSwitch(uint8_t key, State lastState){
+	if(!(key & 0x01) && (lastKeyState & 0x01)) {
+		return SET_MODE; // 按SW1进入模式切换状态
+	}
+	else if (!(key & 0x02) && (lastKeyState & 0x02)){
+		return SET_VALUE; // 按SW2进入设置显示内容状态
+	}
+	else if (!(key & 0x80) && (lastKeyState & 0x80)){
+		return RUN; // 按SW8进入运行状态
+	}
+	else if (!(key & 0x40) && (lastKeyState & 0x40)){
+		return LEFT_FLOAT; // 按SW7进入左流水显示状态
+	}
+	else if (!(key & 0x20) && (lastKeyState & 0x20)){
+		return RIGHT_FLOAT; // 按SW6进入右流水显示状态
+	}
+	else{ // 保持原状态
+		return lastState;
 	}
 }
 
@@ -155,30 +237,30 @@ uint8_t ReadKey(){
 }
 
 void ShowTime(){
-	Buffer = Time_buffer;
-	Show(Buffer);
-	while (currentMode == MODE_TIME){
-		Show(Buffer);
-		if(ReadKey() != 0xFF) break;
+	int i;
+	for(i = 0; i<8; i++){
+		Buffer[i] = Time_buffer[i];
 	}
+	Buffer[1] += 37; // 加小数点
+	Buffer[3] += 37; // 加小数点
 }
 
 void ShowAlarm(){
-	Buffer = Alarm_buffer;
-	Show(Buffer);
-	while (currentMode == MODE_ALARM){
-		Show(Buffer);
-		if(ReadKey() != 0xFF) break;
+	int i;
+	for(i = 0; i<8; i++){
+		Buffer[i] = Alarm_buffer[i];
 	}
+	Buffer[1] += 37; // 加小数点
+	Buffer[3] += 37; // 加小数点
 }
 
 void ShowDate(){
-	Buffer = Date_buffer;
-	Show(Buffer);
-	while (currentMode == MODE_DATE){
-		Show(Buffer);
-		if(ReadKey() != 0xFF) break;
+	int i;
+	for(i = 0; i<8; i++){
+		Buffer[i] = Date_buffer[i];
 	}
+	Buffer[3] += 37; // 加小数点
+	Buffer[5] += 37; // 加小数点
 }
 
 void ChooseChangeBit(){
@@ -197,6 +279,9 @@ void Power_On_Init(void){
 	uint8_t ID[] = {4,2,9,1,0,0,1,6};
 	uint8_t Name[] = {'w'-'a'+10,'z'-'a'+10,'h'-'a'+10,36,36,36,36,36};
 	int i,j;
+	for(i = 0; i<8; i++){
+		Buffer[i] = Blank_buffer[i];
+	}
 	for(i=0; i<3; i++){ // 学号后八位和LED闪烁3次
 		result = I2C0_WriteByte(PCA9557_I2CADDR,PCA9557_OUTPUT,0x0);
 		for(j=0; j<20; j++){ // 这个循环控制的是显示时间长短
@@ -267,6 +352,32 @@ void S800_I2C0_Init(void)
 	
 }
 
+void UARTStringPut(uint8_t *cMessage)
+{
+	while(*cMessage!='\0')
+	UARTCharPut(UART0_BASE,*(cMessage++));
+}
+void UARTStringPutNonBlocking(const char *cMessage)
+{
+	while(*cMessage!='\0')
+	UARTCharPutNonBlocking(UART0_BASE,*(cMessage++));
+}
+
+void S800_UART_Init(void){
+	SysCtlPeripheralEnable(SYSCTL_PERIPH_UART0);
+  	SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOA);						//Enable PortA
+	while(!SysCtlPeripheralReady(SYSCTL_PERIPH_GPIOA));			//Wait for the GPIO moduleA ready
+
+	GPIOPinConfigure(GPIO_PA0_U0RX);												// Set GPIO A0 and A1 as UART pins.
+  	GPIOPinConfigure(GPIO_PA1_U0TX);    			
+
+  	GPIOPinTypeUART(GPIO_PORTA_BASE, GPIO_PIN_0 | GPIO_PIN_1);
+
+	// Configure the UART for 115,200, 8-N-1 operation.
+  	UARTConfigSetExpClk(UART0_BASE, ui32SysClock,115200,(UART_CONFIG_WLEN_8 | UART_CONFIG_STOP_ONE |UART_CONFIG_PAR_NONE));
+	UARTStringPut((uint8_t *)"\r\nHello, world!\r\n");
+}
+
 uint8_t I2C0_WriteByte(uint8_t DevAddr, uint8_t RegAddr, uint8_t WriteData)
 {
 	uint8_t rop;
@@ -300,13 +411,13 @@ uint8_t I2C0_ReadByte(uint8_t DevAddr, uint8_t RegAddr)
 	I2CMasterControl(I2C0_BASE,I2C_MASTER_CMD_SINGLE_SEND);//执行单词写入操作
 	while(I2CMasterBusBusy(I2C0_BASE));
 	rop = (uint8_t)I2CMasterErr(I2C0_BASE);
-	Delay(1);
+	Delay(100);
 	//receive data
 	I2CMasterSlaveAddrSet(I2C0_BASE, DevAddr, true);//设置从机地址
 	I2CMasterControl(I2C0_BASE,I2C_MASTER_CMD_SINGLE_RECEIVE);//执行单次读操作
 	while(I2CMasterBusBusy(I2C0_BASE));
 	value = I2CMasterDataGet(I2C0_BASE);//获取读取的数据
-	Delay(1);
+	Delay(100);
 	return value;
 }
 
