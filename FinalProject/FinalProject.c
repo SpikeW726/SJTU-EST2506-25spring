@@ -9,8 +9,13 @@
 #include "i2c.h"
 #include "pin_map.h"
 #include "sysctl.h"
+#include "systick.h"
 #include "uart.h"
 #include "hw_ints.h"
+#include "interrupt.h"
+#include "hw_nvic.h"
+#define DISABLE_INTERRUPTS() HWREG(NVIC_DIS0) = 0xFFFFFFFF
+#define ENABLE_INTERRUPTS() HWREG(NVIC_EN0) = 0xFFFFFFFF
 //*****************************************************************************
 //
 //I2C GPIO chip address and resigster define
@@ -42,7 +47,8 @@
 typedef enum {
     MODE_DATE,
     MODE_TIME,
-    MODE_ALARM
+    MODE_ALARM,
+	MODE_MAX
 } DisplayMode;
 
 typedef enum {
@@ -65,11 +71,13 @@ void		S800_UART_Init(void);
 void        Power_On_Init(void);
 void        Show(uint8_t*);
 void        Blank(void);
-// void        SwitchMode(void);
 void        ChooseChangeBit(void);
 void        ShowTime(void);
 void        ShowDate(void);
 void        ShowAlarm(void);
+
+void UARTStringPut(uint8_t *);
+void UARTStringPutNonBlocking(const char *);
 
 
 // 全局变量
@@ -96,51 +104,106 @@ DisplayMode currentMode = MODE_DATE;
 State currentState = SET_MODE;
 uint8_t currentKey = 0xFF;
 uint8_t lastKeyState = 0xFF;
+int float_cnt = 0;
+uint16_t time_cnt = 0;
+uint8_t left_float_speed = 0;
+uint8_t right_float_speed = 0;
 
 void SysTickIntHandler(void){
+	// UARTStringPutNonBlocking("\r\nSYSTICK_INT\r\n");
+	// UARTStringPut((uint8_t *)"\r\nSYSTICK_INT\r\n");
 	switch (currentState){
 		case LEFT_FLOAT:{
-			static uint8_t float_cnt = 0;
-			int i;
-			for(i = float_cnt; i<8; i++){
-				Buffer[i] = Float_buffer[i];
+			int i, tmp;
+			time_cnt++;
+			if(left_float_speed == 0){
+				if(time_cnt % 800 == 0){
+					time_cnt = 0;
+					for(i = 0; i < 8; i++){
+						tmp = (i+float_cnt) >= 16 ? (i+float_cnt-16) : (i+float_cnt);
+						Buffer[i] = Float_buffer[tmp];
+					}
+					float_cnt += 1; 
+					if(float_cnt == 16) float_cnt = 0;
+				}
 			}
-			float_cnt += 1;
+			else{
+				if(time_cnt % 400 == 0){
+					time_cnt = 0;
+					for(i = 0; i < 8; i++){
+						tmp = (i+float_cnt) >= 16 ? (i+float_cnt-16) : (i+float_cnt);
+						Buffer[i] = Float_buffer[tmp];
+					}
+					float_cnt += 1; 
+					if(float_cnt == 16) float_cnt = 0;
+				}
+			}
+
 			break;
 		}
 		case RIGHT_FLOAT:{
+			int i, tmp;
+			time_cnt++;
+			if(left_float_speed == 0){
+				if(time_cnt % 800 == 0){
+					time_cnt = 0;
+					for(i = 0; i < 8; i++){
+						tmp = (i+float_cnt) >= 16 ? (i+float_cnt-16) : (i+float_cnt);
+						Buffer[i] = Float_buffer[tmp];
+					}
+					float_cnt -= 1; 
+					if(float_cnt == 0) float_cnt = 16;
+				}
+			}
+			else{
+				if(time_cnt % 400 == 0){
+					time_cnt = 0;
+					for(i = 0; i < 8; i++){
+						tmp = (i+float_cnt) >= 16 ? (i+float_cnt-16) : (i+float_cnt);
+						Buffer[i] = Float_buffer[tmp];
+					}
+					float_cnt -= 1; 
+					if(float_cnt == 0) float_cnt = 16;
+				}
+			}
+
 			break;
 		}
 	}
 }
 
-void UART0_Handler(void){
-	int32_t uart0_int_status;
-  	uart0_int_status = UARTIntStatus(UART0_BASE, true);		// Get the interrrupt status.
+void UART0_Handler(void)
+{	
+    uint32_t int_status = UARTIntStatus(UART0_BASE, true);
+	UARTStringPutNonBlocking("\r\nUART0_INT\r\n");
+	// UARTStringPut((uint8_t *)"\r\nUART0_INT\r\n");
+    UARTIntClear(UART0_BASE, int_status);
 
-  	UARTIntClear(UART0_BASE, uart0_int_status);						//Clear the asserted interrupts
-
-  	while(UARTCharsAvail(UART0_BASE)){    							// Loop while there are characters in the receive FIFO.
-		//Read the next character from the UART and write it back to the UART.
-		UARTCharPutNonBlocking(UART0_BASE,UARTCharGetNonBlocking(UART0_BASE));
-		GPIOPinWrite(GPIO_PORTN_BASE, GPIO_PIN_1,GPIO_PIN_1 );		
-	}
-	GPIOPinWrite(GPIO_PORTN_BASE, GPIO_PIN_1, 0);
+    // 仅处理可用字符（非阻塞）
+    while(UARTCharsAvail(UART0_BASE)) { // 检测UART接收FIFO中是否有可用数据,有数据时返回True
+        int32_t received = UARTCharGetNonBlocking(UART0_BASE);
+        if(received != -1) {
+			// 可靠发送（阻塞式，但每个字符等待时间很短）
+            while(!UARTCharPutNonBlocking(UART0_BASE, (uint8_t)received)) {
+                // 等待发送FIFO有空间
+                // 在115200波特率下，等待时间很短（约87?s/字符）
+            }
+        }
+    }
 }
 
 int main(void){
 	//use internal 16M oscillator, HSI
-    ui32SysClock = SysCtlClockFreqSet((SYSCTL_XTAL_16MHZ |SYSCTL_OSC_INT |SYSCTL_USE_OSC), 16000000);
-	SysTickPeriodSet(ui32SysClock); // 中断周期为1s	
+    ui32SysClock = SysCtlClockFreqSet((SYSCTL_XTAL_16MHZ |SYSCTL_OSC_INT | SYSCTL_USE_PLL |SYSCTL_CFG_VCO_480), 20000000);
+	SysTickPeriodSet(ui32SysClock/1000);
+	SysTickEnable();
+	SysTickIntEnable();	
 	
 	S800_GPIO_Init();
 	S800_I2C0_Init();
 	S800_UART_Init();
 	Power_On_Init();
 
-	// 启用中断
-    SysTickIntEnable();
-    SysTickEnable();
 	IntEnable(INT_UART0);
   	UARTIntEnable(UART0_BASE, UART_INT_RX | UART_INT_RT);	//Enable UART0 RX,TX interrupt
 	IntMasterEnable();
@@ -159,7 +222,7 @@ int main(void){
 	
 	while (1){	
 		
-		UARTStringPut((uint8_t *)"\r\nmain-loop\r\n");
+		// UARTStringPut((uint8_t *)"\r\nmain-loop\r\n");
 		Show(Buffer);
 		currentKey = ReadKey();
 
@@ -167,7 +230,7 @@ int main(void){
 			case SET_MODE:{
 				// 按键检测（下降沿触发）
 				if(!(currentKey & 0x01) && (lastKeyState & 0x01)) {
-					currentMode = (currentMode + 1) % 3;
+					currentMode = (currentMode + 1) % MODE_MAX;
 				}
 				currentState = CheckStateSwitch(currentKey, currentState);
 				lastKeyState = currentKey;
@@ -181,12 +244,12 @@ int main(void){
 				break;
 			}
 			case LEFT_FLOAT:{
+				if(!(currentKey & 0x40) && (lastKeyState & 0x40)) {
+					left_float_speed = (left_float_speed+1) % 2;
+				}
+
 				memcpy(Float_buffer, Date_buffer, sizeof(Date_buffer));
 				memcpy(Float_buffer+8, Time_buffer, sizeof(Time_buffer));
-
-				// if(!(currentKey & 0x40) && (lastKeyState & 0x40)) {
-
-				// }
 
 				currentState = CheckStateSwitch(currentKey, currentState);
 				lastKeyState = currentKey;
@@ -194,13 +257,13 @@ int main(void){
 				break;
 			}
 			case RIGHT_FLOAT:{
-				int i;
-				for (i = 0; i < 8; i++){
-					Buffer[i] = 7-i;
+				if(!(currentKey & 0x20) && (lastKeyState & 0x20)) {
+					left_float_speed = (left_float_speed+1) % 2;
 				}
-				// if(!(currentKey & 0x20) && (lastKeyState & 0x20)) {
-					
-				// }
+
+				memcpy(Float_buffer, Date_buffer, sizeof(Date_buffer));
+				memcpy(Float_buffer+8, Time_buffer, sizeof(Time_buffer));
+
 				currentState = CheckStateSwitch(currentKey, currentState);
 				lastKeyState = currentKey;
 
@@ -309,7 +372,14 @@ void Blank(){
 }
 
 void Show(uint8_t* Buffer){ // 先默认输出内容是八位
-	int i = 0;
+	int i;
+    uint8_t local_buffer[8];
+    
+    // 进入临界区
+    DISABLE_INTERRUPTS();
+    memcpy(local_buffer, Buffer, sizeof(local_buffer));
+    ENABLE_INTERRUPTS(); // 退出临界区
+
 	for(i=0; i<8; i++){
 		result = I2C0_WriteByte(TCA6424_I2CADDR,TCA6424_OUTPUT_PORT2,(uint8_t)(1<<i));
 		result = I2C0_WriteByte(TCA6424_I2CADDR,TCA6424_OUTPUT_PORT1,num_seg7[Buffer[i]]);
@@ -355,12 +425,12 @@ void S800_I2C0_Init(void)
 void UARTStringPut(uint8_t *cMessage)
 {
 	while(*cMessage!='\0')
-	UARTCharPut(UART0_BASE,*(cMessage++));
+		UARTCharPut(UART0_BASE,*(cMessage++));
 }
 void UARTStringPutNonBlocking(const char *cMessage)
 {
 	while(*cMessage!='\0')
-	UARTCharPutNonBlocking(UART0_BASE,*(cMessage++));
+		UARTCharPutNonBlocking(UART0_BASE,*(cMessage++));
 }
 
 void S800_UART_Init(void){
@@ -375,7 +445,7 @@ void S800_UART_Init(void){
 
 	// Configure the UART for 115,200, 8-N-1 operation.
   	UARTConfigSetExpClk(UART0_BASE, ui32SysClock,115200,(UART_CONFIG_WLEN_8 | UART_CONFIG_STOP_ONE |UART_CONFIG_PAR_NONE));
-	UARTStringPut((uint8_t *)"\r\nHello, world!\r\n");
+	UARTStringPut((uint8_t *)"\r\nHello,world!\r\n");
 }
 
 uint8_t I2C0_WriteByte(uint8_t DevAddr, uint8_t RegAddr, uint8_t WriteData)

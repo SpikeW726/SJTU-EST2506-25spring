@@ -10,5 +10,8 @@
 .\objects\finalproject.o: .\driverlib\i2c.h
 .\objects\finalproject.o: .\driverlib\pin_map.h
 .\objects\finalproject.o: .\driverlib\sysctl.h
+.\objects\finalproject.o: .\driverlib\systick.h
 .\objects\finalproject.o: .\driverlib\uart.h
 .\objects\finalproject.o: .\inc\hw_ints.h
+.\objects\finalproject.o: .\driverlib\interrupt.h
+.\objects\finalproject.o: .\inc\hw_nvic.h

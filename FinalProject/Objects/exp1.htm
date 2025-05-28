@@ -3,9 +3,9 @@
 <title>Static Call Graph - [.\Objects\exp1.axf]</title></head>
 <body><HR>
 <H1>Static Call Graph for image .\Objects\exp1.axf</H1><HR>
-<BR><P>#&#060CALLGRAPH&#062# ARM Linker, 5060750: Last Updated: Wed May 28 13:18:09 2025
+<BR><P>#&#060CALLGRAPH&#062# ARM Linker, 5060750: Last Updated: Thu May 29 01:51:08 2025
 <BR><P>
-<H3>Maximum Stack Usage =         72 bytes + Unknown(Functions without stacksize, Cycles, Untraceable Function Pointers)</H3><H3>
+<H3>Maximum Stack Usage =         80 bytes + Unknown(Functions without stacksize, Cycles, Untraceable Function Pointers)</H3><H3>
 Call chain for Maximum Stack Depth:</H3>
 __rt_entry_main &rArr; main &rArr; Power_On_Init &rArr; Show &rArr; I2C0_WriteByte
 <P>
@@ -379,7 +379,7 @@ Global Symbols
 <P><STRONG><a name="[f4]"></a>__rt_entry_postsh_1</STRONG> (Thumb, 0 bytes, Stack size unknown bytes, __rtentry2.o(.ARM.Collect$$rtentry$$00000009))
 
 <P><STRONG><a name="[86]"></a>__rt_entry_main</STRONG> (Thumb, 0 bytes, Stack size unknown bytes, __rtentry2.o(.ARM.Collect$$rtentry$$0000000D))
-<BR><BR>[Stack]<UL><LI>Max Depth = 72 + Unknown Stack Size
+<BR><BR>[Stack]<UL><LI>Max Depth = 80 + Unknown Stack Size
 <LI>Call Chain = __rt_entry_main &rArr; main &rArr; Power_On_Init &rArr; Show &rArr; I2C0_WriteByte
 </UL>
 <BR>[Calls]<UL><LI><a href="#[87]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;main
@@ -1445,10 +1445,6 @@ Global Symbols
 <BR>[Called By]<UL><LI><a href="#[bd]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;S800_UART_Init
 </UL>
 
-<P><STRONG><a name="[c4]"></a>GPIOPinWrite</STRONG> (Thumb, 6 bytes, Stack size 0 bytes, gpio.o(i.GPIOPinWrite))
-<BR><BR>[Called By]<UL><LI><a href="#[11]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;UART0_Handler
-</UL>
-
 <P><STRONG><a name="[a6]"></a>I2C0_ReadByte</STRONG> (Thumb, 122 bytes, Stack size 24 bytes, finalproject.o(i.I2C0_ReadByte))
 <BR><BR>[Stack]<UL><LI>Max Depth = 24<LI>Call Chain = I2C0_ReadByte
 </UL>
@@ -1555,7 +1551,7 @@ Global Symbols
 </UL>
 
 <P><STRONG><a name="[b3]"></a>Power_On_Init</STRONG> (Thumb, 138 bytes, Stack size 32 bytes, finalproject.o(i.Power_On_Init))
-<BR><BR>[Stack]<UL><LI>Max Depth = 72<LI>Call Chain = Power_On_Init &rArr; Show &rArr; I2C0_WriteByte
+<BR><BR>[Stack]<UL><LI>Max Depth = 80<LI>Call Chain = Power_On_Init &rArr; Show &rArr; I2C0_WriteByte
 </UL>
 <BR>[Calls]<UL><LI><a href="#[b4]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Show
 <LI><a href="#[9e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;I2C0_WriteByte
@@ -1612,8 +1608,8 @@ Global Symbols
 <BR>[Called By]<UL><LI><a href="#[87]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;main
 </UL>
 
-<P><STRONG><a name="[b4]"></a>Show</STRONG> (Thumb, 76 bytes, Stack size 16 bytes, finalproject.o(i.Show))
-<BR><BR>[Stack]<UL><LI>Max Depth = 40<LI>Call Chain = Show &rArr; I2C0_WriteByte
+<P><STRONG><a name="[b4]"></a>Show</STRONG> (Thumb, 100 bytes, Stack size 24 bytes, finalproject.o(i.Show))
+<BR><BR>[Stack]<UL><LI>Max Depth = 48<LI>Call Chain = Show &rArr; I2C0_WriteByte
 </UL>
 <BR>[Calls]<UL><LI><a href="#[9e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;I2C0_WriteByte
 <LI><a href="#[ad]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Delay
@@ -1651,15 +1647,17 @@ Global Symbols
 <LI><a href="#[b6]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;S800_GPIO_Init
 </UL>
 
-<P><STRONG><a name="[ca]"></a>SysTickEnable</STRONG> (Thumb, 14 bytes, Stack size 0 bytes, systick.o(i.SysTickEnable))
+<P><STRONG><a name="[c9]"></a>SysTickEnable</STRONG> (Thumb, 14 bytes, Stack size 0 bytes, systick.o(i.SysTickEnable))
 <BR><BR>[Called By]<UL><LI><a href="#[87]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;main
 </UL>
 
-<P><STRONG><a name="[c9]"></a>SysTickIntEnable</STRONG> (Thumb, 14 bytes, Stack size 0 bytes, systick.o(i.SysTickIntEnable))
+<P><STRONG><a name="[ca]"></a>SysTickIntEnable</STRONG> (Thumb, 14 bytes, Stack size 0 bytes, systick.o(i.SysTickIntEnable))
 <BR><BR>[Called By]<UL><LI><a href="#[87]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;main
 </UL>
 
-<P><STRONG><a name="[b]"></a>SysTickIntHandler</STRONG> (Thumb, 52 bytes, Stack size 0 bytes, finalproject.o(i.SysTickIntHandler))
+<P><STRONG><a name="[b]"></a>SysTickIntHandler</STRONG> (Thumb, 426 bytes, Stack size 8 bytes, finalproject.o(i.SysTickIntHandler))
+<BR><BR>[Stack]<UL><LI>Max Depth = 8<LI>Call Chain = SysTickIntHandler
+</UL>
 <BR>[Address Reference Count : 1]<UL><LI> startup_tm4c129.o(RESET)
 </UL>
 <P><STRONG><a name="[c8]"></a>SysTickPeriodSet</STRONG> (Thumb, 10 bytes, Stack size 0 bytes, systick.o(i.SysTickPeriodSet))
@@ -1669,19 +1667,19 @@ Global Symbols
 <P><STRONG><a name="[79]"></a>SystemInit</STRONG> (Thumb, 20 bytes, Stack size 0 bytes, system_tm4c129.o(i.SystemInit))
 <BR>[Address Reference Count : 1]<UL><LI> startup_tm4c129.o(.text)
 </UL>
-<P><STRONG><a name="[11]"></a>UART0_Handler</STRONG> (Thumb, 70 bytes, Stack size 16 bytes, finalproject.o(i.UART0_Handler))
-<BR><BR>[Stack]<UL><LI>Max Depth = 16<LI>Call Chain = UART0_Handler
+<P><STRONG><a name="[11]"></a>UART0_Handler</STRONG> (Thumb, 68 bytes, Stack size 16 bytes, finalproject.o(i.UART0_Handler))
+<BR><BR>[Stack]<UL><LI>Max Depth = 24<LI>Call Chain = UART0_Handler &rArr; UARTStringPutNonBlocking
 </UL>
 <BR>[Calls]<UL><LI><a href="#[c0]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;UARTIntStatus
-<LI><a href="#[c1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;UARTIntClear
+<LI><a href="#[c2]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;UARTIntClear
 <LI><a href="#[c5]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;UARTCharsAvail
-<LI><a href="#[c3]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;UARTCharPutNonBlocking
-<LI><a href="#[c2]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;UARTCharGetNonBlocking
-<LI><a href="#[c4]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;GPIOPinWrite
+<LI><a href="#[c4]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;UARTCharPutNonBlocking
+<LI><a href="#[c3]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;UARTCharGetNonBlocking
+<LI><a href="#[c1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;UARTStringPutNonBlocking
 </UL>
 <BR>[Address Reference Count : 1]<UL><LI> startup_tm4c129.o(RESET)
 </UL>
-<P><STRONG><a name="[c2]"></a>UARTCharGetNonBlocking</STRONG> (Thumb, 16 bytes, Stack size 0 bytes, uart.o(i.UARTCharGetNonBlocking))
+<P><STRONG><a name="[c3]"></a>UARTCharGetNonBlocking</STRONG> (Thumb, 16 bytes, Stack size 0 bytes, uart.o(i.UARTCharGetNonBlocking))
 <BR><BR>[Called By]<UL><LI><a href="#[11]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;UART0_Handler
 </UL>
 
@@ -1692,8 +1690,9 @@ Global Symbols
 <LI><a href="#[bf]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;UARTStringPut
 </UL>
 
-<P><STRONG><a name="[c3]"></a>UARTCharPutNonBlocking</STRONG> (Thumb, 16 bytes, Stack size 0 bytes, uart.o(i.UARTCharPutNonBlocking))
-<BR><BR>[Called By]<UL><LI><a href="#[11]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;UART0_Handler
+<P><STRONG><a name="[c4]"></a>UARTCharPutNonBlocking</STRONG> (Thumb, 16 bytes, Stack size 0 bytes, uart.o(i.UARTCharPutNonBlocking))
+<BR><BR>[Called By]<UL><LI><a href="#[c1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;UARTStringPutNonBlocking
+<LI><a href="#[11]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;UART0_Handler
 </UL>
 
 <P><STRONG><a name="[c5]"></a>UARTCharsAvail</STRONG> (Thumb, 10 bytes, Stack size 0 bytes, uart.o(i.UARTCharsAvail))
@@ -1707,7 +1706,7 @@ Global Symbols
 <LI><a href="#[bd]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;S800_UART_Init
 </UL>
 
-<P><STRONG><a name="[c1]"></a>UARTIntClear</STRONG> (Thumb, 4 bytes, Stack size 0 bytes, uart.o(i.UARTIntClear))
+<P><STRONG><a name="[c2]"></a>UARTIntClear</STRONG> (Thumb, 4 bytes, Stack size 0 bytes, uart.o(i.UARTIntClear))
 <BR><BR>[Called By]<UL><LI><a href="#[11]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;UART0_Handler
 </UL>
 
@@ -1727,13 +1726,21 @@ Global Symbols
 <BR>[Called By]<UL><LI><a href="#[bd]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;S800_UART_Init
 </UL>
 
-<P><STRONG><a name="[87]"></a>main</STRONG> (Thumb, 352 bytes, Stack size 0 bytes, finalproject.o(i.main))
-<BR><BR>[Stack]<UL><LI>Max Depth = 72<LI>Call Chain = main &rArr; Power_On_Init &rArr; Show &rArr; I2C0_WriteByte
+<P><STRONG><a name="[c1]"></a>UARTStringPutNonBlocking</STRONG> (Thumb, 24 bytes, Stack size 8 bytes, finalproject.o(i.UARTStringPutNonBlocking))
+<BR><BR>[Stack]<UL><LI>Max Depth = 8<LI>Call Chain = UARTStringPutNonBlocking
+</UL>
+<BR>[Calls]<UL><LI><a href="#[c4]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;UARTCharPutNonBlocking
+</UL>
+<BR>[Called By]<UL><LI><a href="#[11]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;UART0_Handler
+</UL>
+
+<P><STRONG><a name="[87]"></a>main</STRONG> (Thumb, 444 bytes, Stack size 0 bytes, finalproject.o(i.main))
+<BR><BR>[Stack]<UL><LI>Max Depth = 80<LI>Call Chain = main &rArr; Power_On_Init &rArr; Show &rArr; I2C0_WriteByte
 </UL>
 <BR>[Calls]<UL><LI><a href="#[cc]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;UARTIntEnable
 <LI><a href="#[c8]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;SysTickPeriodSet
-<LI><a href="#[c9]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;SysTickIntEnable
-<LI><a href="#[ca]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;SysTickEnable
+<LI><a href="#[ca]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;SysTickIntEnable
+<LI><a href="#[c9]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;SysTickEnable
 <LI><a href="#[c7]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;SysCtlClockFreqSet
 <LI><a href="#[ce]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;IntPrioritySet
 <LI><a href="#[b1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;IntPriorityMaskGet
