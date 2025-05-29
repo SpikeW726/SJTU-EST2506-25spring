@@ -59,6 +59,18 @@ typedef enum {
 	RIGHT_FLOAT
 } State;
 
+typedef struct {
+	uint8_t hour;
+	uint8_t min;
+	uint8_t sec;
+} _time;
+
+typedef struct {
+	uint16_t year;
+	uint8_t mon;
+	uint8_t day;
+} _date;
+
 // 函数声明
 uint8_t 	I2C0_WriteByte(uint8_t DevAddr, uint8_t RegAddr, uint8_t WriteData);
 uint8_t 	I2C0_ReadByte(uint8_t DevAddr, uint8_t RegAddr);
@@ -71,10 +83,11 @@ void		S800_UART_Init(void);
 void        Power_On_Init(void);
 void        Show(uint8_t*);
 void        Blank(void);
-void        ChooseChangeBit(void);
 void        ShowTime(void);
 void        ShowDate(void);
 void        ShowAlarm(void);
+void        Load_date(uint8_t *, _date);
+void        Load_time(uint8_t *, _time);
 
 void UARTStringPut(uint8_t *);
 void UARTStringPutNonBlocking(const char *);
@@ -89,25 +102,37 @@ uint8_t num_seg7[] = {0x3f,0x06,0x5b,0x4f,0x66,0x6d,0x7d,0x07,0x7f,0x6f,
 					  0x77,0x7c,0x39,0x5e,0x79,0x71,0x3d,0x76,0x0f,0x0e,
 					  0x75,0x38,0x37,0x54,0x5c,0x73,0x67,0x31,0x49,0x78,
 					  0x3e,0x1c,0x7e,0x64,0x6e,0x59,0x0,
-					  0x3f|0x80,0x06|0x80,0x5b|0x80,0x4f|0x80,0x66|0x80,0x6d|0x80,0x7d|0x80,0x07|0x80,0x7f|0x80,0x6f|0x80,}; // 0-9+a-z,第36位为熄灭,最后一行是带小数点的1-9
+					  0x3f|0x80,0x06|0x80,0x5b|0x80,0x4f|0x80,0x66|0x80,0x6d|0x80,0x7d|0x80,0x07|0x80,0x7f|0x80,0x6f|0x80}; // 0-9+a-z,第36位为熄灭,最后一行是带小数点的1-9
 
-uint8_t Buffer[8]; // 全局要通过数码管显示的内容都要进入这个Buffer数组
-
-// 各种显示数组初始化
-uint8_t Time_buffer[] = {0,8,0,0,0,0,36,36};
-uint8_t Date_buffer[] = {2,0,2,5,0,5,2,8};
-uint8_t Alarm_buffer[] = {0,0,0,5,0,0,36,36};
-uint8_t Blank_buffer[] = {36,36,36,36,36,36,36,36};
-uint8_t Float_buffer[16] = {0X0};
-
+// 公用的全局变量
 DisplayMode currentMode = MODE_DATE;
 State currentState = SET_MODE;
 uint8_t currentKey = 0xFF;
 uint8_t lastKeyState = 0xFF;
+uint8_t Buffer[8]; // 全局要通过数码管显示的内容都要进入这个Buffer数组
+
+// 各种显示数组初始化
+// uint8_t Time_buffer[] = {0,8,0,0,0,0,36,36};
+_time Time_buffer = {17,23,58};
+// uint8_t Date_buffer[] = {2,0,2,5,0,5,2,8};
+_date Date_buffer = {2025,5,29};
+// uint8_t Alarm_buffer[] = {0,0,0,5,0,0,36,36};
+_time Alarm_buffer = {0,0,15};
+uint8_t Blank_buffer[] = {36,36,36,36,36,36,36,36};
+uint8_t Float_buffer[16] = {0X0};
+
+// 流水功能使用的全局变量
 int float_cnt = 0;
 uint16_t time_cnt = 0;
 uint8_t left_float_speed = 0;
 uint8_t right_float_speed = 0;
+// 设置显示数据使用的全局变量
+uint8_t date_blink_start_bit = 0;
+uint8_t date_blink_end_bit = 3;
+uint8_t blink_start_bit = 0;
+uint8_t blink_end_bit = 1;
+uint8_t bit_cnt = 0; 
+uint16_t blink_time_cnt = 0;
 
 void SysTickIntHandler(void){
 	// UARTStringPutNonBlocking("\r\nSYSTICK_INT\r\n");
@@ -138,35 +163,70 @@ void SysTickIntHandler(void){
 					if(float_cnt == 16) float_cnt = 0;
 				}
 			}
-
 			break;
 		}
 		case RIGHT_FLOAT:{
 			int i, tmp;
 			time_cnt++;
-			if(left_float_speed == 0){
-				if(time_cnt % 800 == 0){
+			if(right_float_speed == 0){
+				if(time_cnt % 600 == 0){
 					time_cnt = 0;
 					for(i = 0; i < 8; i++){
 						tmp = (i+float_cnt) >= 16 ? (i+float_cnt-16) : (i+float_cnt);
 						Buffer[i] = Float_buffer[tmp];
 					}
 					float_cnt -= 1; 
-					if(float_cnt == 0) float_cnt = 16;
+					if(float_cnt <= 0) float_cnt = 16;
 				}
 			}
 			else{
-				if(time_cnt % 400 == 0){
+				if(time_cnt % 300 == 0){
 					time_cnt = 0;
 					for(i = 0; i < 8; i++){
 						tmp = (i+float_cnt) >= 16 ? (i+float_cnt-16) : (i+float_cnt);
 						Buffer[i] = Float_buffer[tmp];
 					}
 					float_cnt -= 1; 
-					if(float_cnt == 0) float_cnt = 16;
+					if(float_cnt <= 0) float_cnt = 16;
 				}
 			}
+			break;
+		}
+		case SET_VALUE:{
+			int i;
+			static bool is_show = true;
+			blink_time_cnt++;
 
+			if(blink_time_cnt % 200 == 0){
+				blink_time_cnt = 0;
+				is_show = !is_show;
+				switch (currentMode){
+					case MODE_DATE:
+						if(!is_show){
+							for(i=date_blink_start_bit; i<=date_blink_end_bit; i++){
+								Buffer[i] = 36;
+							}
+						}
+						else ShowDate();
+						break;
+					case MODE_TIME:
+						if(!is_show){
+							for(i=blink_start_bit; i<=blink_end_bit; i++){
+								Buffer[i] = 36;
+							}
+						}
+						else ShowTime();
+						break;
+					case MODE_ALARM:
+						if(!is_show){
+							for(i=blink_start_bit; i<=blink_end_bit; i++){
+								Buffer[i] = 36;
+							}
+						}
+						else ShowAlarm();
+						break;
+				}
+			}
 			break;
 		}
 	}
@@ -222,7 +282,6 @@ int main(void){
 	
 	while (1){	
 		
-		// UARTStringPut((uint8_t *)"\r\nmain-loop\r\n");
 		Show(Buffer);
 		currentKey = ReadKey();
 
@@ -247,9 +306,10 @@ int main(void){
 				if(!(currentKey & 0x40) && (lastKeyState & 0x40)) {
 					left_float_speed = (left_float_speed+1) % 2;
 				}
-
-				memcpy(Float_buffer, Date_buffer, sizeof(Date_buffer));
-				memcpy(Float_buffer+8, Time_buffer, sizeof(Time_buffer));
+				Load_date(Float_buffer, Date_buffer);
+				// memcpy(Float_buffer, Buffer, sizeof(Buffer));
+				Load_time(Float_buffer+8, Time_buffer);
+				// memcpy(Float_buffer+8, Buffer, sizeof(Buffer));
 
 				currentState = CheckStateSwitch(currentKey, currentState);
 				lastKeyState = currentKey;
@@ -258,16 +318,106 @@ int main(void){
 			}
 			case RIGHT_FLOAT:{
 				if(!(currentKey & 0x20) && (lastKeyState & 0x20)) {
-					left_float_speed = (left_float_speed+1) % 2;
+					right_float_speed = (right_float_speed+1) % 2;
 				}
 
-				memcpy(Float_buffer, Date_buffer, sizeof(Date_buffer));
-				memcpy(Float_buffer+8, Time_buffer, sizeof(Time_buffer));
+				Load_date(Float_buffer, Date_buffer);
+				// memcpy(Float_buffer, Buffer, sizeof(Buffer));
+				Load_time(Float_buffer+8, Time_buffer);
+				// memcpy(Float_buffer+8, Buffer, sizeof(Buffer));
+
 
 				currentState = CheckStateSwitch(currentKey, currentState);
 				lastKeyState = currentKey;
 
 				break;
+			}
+			case SET_VALUE:{
+				switch (currentMode){
+					case MODE_DATE:
+						if(!(currentKey & 0x02) && (lastKeyState & 0x02)) {
+							switch (bit_cnt){
+								case 0:
+									date_blink_start_bit += 4;
+									date_blink_end_bit += 2;
+									break;
+								case 1:
+									date_blink_start_bit += 2;
+									date_blink_end_bit += 2;
+									break;
+								case 2:
+									date_blink_start_bit = 0;
+									date_blink_end_bit = 3;
+									break;
+							}
+							bit_cnt = (bit_cnt+1)%3;
+						}
+						else if(!(currentKey & 0x08) && (lastKeyState & 0x08)) { // SW4为增加闪烁位的值
+							switch (bit_cnt){
+								case 0: Date_buffer.year = (Date_buffer.year+1)%10000; break;							
+								case 1: Date_buffer.mon++; if(Date_buffer.mon==13) Date_buffer.mon=1; break;
+								case 2: Date_buffer.day++; if(Date_buffer.day==32) Date_buffer.day=1; break;
+							}
+						}
+						else if(!(currentKey & 0x04) && (lastKeyState & 0x04)) { // SW3为减小闪烁位的值
+							switch (bit_cnt){
+								case 0: Date_buffer.year--; if(Date_buffer.year==0xffff) Date_buffer.year=9999; break;							
+								case 1: Date_buffer.mon--; if(Date_buffer.mon==0xff) Date_buffer.mon=12; break;
+								case 2: Date_buffer.day--; if(Date_buffer.day==0xff) Date_buffer.day=31; break;
+							}
+						}
+						break;
+					
+					case MODE_TIME:
+						if(!(currentKey & 0x02) && (lastKeyState & 0x02)) {
+							blink_start_bit = (blink_start_bit+2)%6;
+							blink_end_bit = (blink_end_bit+2)%6;
+							bit_cnt = (bit_cnt+1)%3;
+						}
+						else if(!(currentKey & 0x08) && (lastKeyState & 0x08)) { // SW4为增加闪烁位的值
+							switch (bit_cnt){
+								case 0: Time_buffer.hour = (Time_buffer.hour+1)%24; break;							
+								case 1: Time_buffer.min = (Time_buffer.min+1)%60; break;
+								case 2: Time_buffer.sec = (Time_buffer.sec+1)%60; break;
+							}
+						}
+						else if(!(currentKey & 0x04) && (lastKeyState & 0x04)) { // SW3为减小闪烁位的值
+							switch (bit_cnt){
+								case 0: Time_buffer.hour--; if(Time_buffer.hour==0xff) Time_buffer.hour=23; break;							
+								case 1: Time_buffer.min--; if(Time_buffer.min==0xff) Time_buffer.min=59; break;
+								case 2: Time_buffer.sec--; if(Time_buffer.sec==0xff) Time_buffer.sec=59; break;
+							}
+						}
+						break;
+
+					case MODE_ALARM:
+						if(!(currentKey & 0x02) && (lastKeyState & 0x02)) {
+							blink_start_bit = (blink_start_bit+2)%6;
+							blink_end_bit = (blink_end_bit+2)%6;
+							bit_cnt = (bit_cnt+1)%3;
+						}
+						else if(!(currentKey & 0x08) && (lastKeyState & 0x08)) { // SW4为增加闪烁位的值
+							switch (bit_cnt){
+								case 0: Alarm_buffer.hour = (Alarm_buffer.hour+1)%100; break;							
+								case 1: Alarm_buffer.min = (Alarm_buffer.min+1)%60; break;
+								case 2: Alarm_buffer.sec = (Alarm_buffer.sec+1)%60; break;
+							}
+						}
+						else if(!(currentKey & 0x04) && (lastKeyState & 0x04)) { // SW3为减小闪烁位的值
+							switch (bit_cnt){
+								case 0: Alarm_buffer.hour--; if(Alarm_buffer.hour==0xff) Alarm_buffer.hour=99; break;							
+								case 1: Alarm_buffer.min--; if(Alarm_buffer.min==0xff) Alarm_buffer.min=59; break;
+								case 2: Alarm_buffer.sec--; if(Alarm_buffer.sec==0xff) Alarm_buffer.sec=59; break;
+							}
+						}
+						break;
+					}
+
+				currentState = CheckStateSwitch(currentKey, currentState);
+				lastKeyState = currentKey;
+
+				break;
+
 			}
 		}
 	}
@@ -278,6 +428,9 @@ State CheckStateSwitch(uint8_t key, State lastState){
 		return SET_MODE; // 按SW1进入模式切换状态
 	}
 	else if (!(key & 0x02) && (lastKeyState & 0x02)){
+		// bit_cnt = 0;
+		// blink_start_bit = 0;
+		// blink_end_bit = 1;
 		return SET_VALUE; // 按SW2进入设置显示内容状态
 	}
 	else if (!(key & 0x80) && (lastKeyState & 0x80)){
@@ -299,36 +452,45 @@ uint8_t ReadKey(){
 	return result;
 }
 
+void Load_time(uint8_t *target, _time source_buffer){
+	target[0] = source_buffer.hour / 10;
+	target[1] = source_buffer.hour % 10;
+	target[2] = source_buffer.min / 10;
+	target[3] = source_buffer.min % 10;
+	target[4] = source_buffer.sec / 10;
+	target[5] = source_buffer.sec % 10;
+	target[6] = target[7] = 36;
+}
+
 void ShowTime(){
-	int i;
-	for(i = 0; i<8; i++){
-		Buffer[i] = Time_buffer[i];
-	}
+	Load_time(Buffer, Time_buffer);
 	Buffer[1] += 37; // 加小数点
 	Buffer[3] += 37; // 加小数点
 }
 
 void ShowAlarm(){
-	int i;
-	for(i = 0; i<8; i++){
-		Buffer[i] = Alarm_buffer[i];
-	}
+	Load_time(Buffer, Alarm_buffer);
 	Buffer[1] += 37; // 加小数点
 	Buffer[3] += 37; // 加小数点
 }
 
-void ShowDate(){
+void Load_date(uint8_t *target, _date source_buffer){
+	uint16_t tmp_year = source_buffer.year;
 	int i;
-	for(i = 0; i<8; i++){
-		Buffer[i] = Date_buffer[i];
+	for(i=3; i>=0; i--){
+		target[i] = tmp_year % 10;
+		tmp_year /= 10;
 	}
-	Buffer[3] += 37; // 加小数点
-	Buffer[5] += 37; // 加小数点
+	target[4] = source_buffer.mon / 10;
+	target[5] = source_buffer.mon % 10;
+	target[6] = source_buffer.day / 10;
+	target[7] = source_buffer.day % 10;
 }
 
-void ChooseChangeBit(){
-	uint8_t test[] = {1,1,1,1,1,1,1,1};
-	Show(test);
+void ShowDate(){
+	Load_date(Buffer, Date_buffer);
+	Buffer[3] += 37; // 加小数点
+	Buffer[5] += 37; // 加小数点
 }
 
 void Delay(uint32_t value)
@@ -373,12 +535,12 @@ void Blank(){
 
 void Show(uint8_t* Buffer){ // 先默认输出内容是八位
 	int i;
-    uint8_t local_buffer[8];
+    // uint8_t local_buffer[8];
     
-    // 进入临界区
-    DISABLE_INTERRUPTS();
-    memcpy(local_buffer, Buffer, sizeof(local_buffer));
-    ENABLE_INTERRUPTS(); // 退出临界区
+    // // 进入临界区
+    // DISABLE_INTERRUPTS();
+    // memcpy(local_buffer, Buffer, sizeof(local_buffer));
+    // ENABLE_INTERRUPTS(); // 退出临界区
 
 	for(i=0; i<8; i++){
 		result = I2C0_WriteByte(TCA6424_I2CADDR,TCA6424_OUTPUT_PORT2,(uint8_t)(1<<i));
