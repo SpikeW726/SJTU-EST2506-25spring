@@ -15,3 +15,5 @@
 .\objects\finalproject.o: .\inc\hw_ints.h
 .\objects\finalproject.o: .\driverlib\interrupt.h
 .\objects\finalproject.o: .\inc\hw_nvic.h
+.\objects\finalproject.o: .\inc\hw_pwm.h
+.\objects\finalproject.o: driverlib/pwm.h

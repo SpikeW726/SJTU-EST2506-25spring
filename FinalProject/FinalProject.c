@@ -14,6 +14,10 @@
 #include "hw_ints.h"
 #include "interrupt.h"
 #include "hw_nvic.h"
+#include "hw_pwm.h"
+#include "driverlib/pin_map.h"
+#include "driverlib/pwm.h"
+
 #define DISABLE_INTERRUPTS() HWREG(NVIC_DIS0) = 0xFFFFFFFF
 #define ENABLE_INTERRUPTS() HWREG(NVIC_EN0) = 0xFFFFFFFF
 //*****************************************************************************
@@ -43,6 +47,14 @@
 #define TCA6424_OUTPUT_PORT0			0x04	// 输出寄存器
 #define TCA6424_OUTPUT_PORT1			0x05
 #define TCA6424_OUTPUT_PORT2			0x06
+
+// 蜂鸣器地址配置
+#define BEEP_PWM_BASE   PWM0_BASE        // PWM0 模块
+#define BEEP_PWM_GEN    PWM_GEN_3        // PWM 生成器组 3（对应通道 6-7）
+#define BEEP_PWM_OUT    PWM_OUT_7        // PWM 通道 7
+#define BEEP_PWM_OUT_BIT PWM_OUT_7_BIT   // 通道位掩码
+#define BEEP_GPIO_PORT  GPIO_PORTK_BASE  // GPIO 端口 K
+#define BEEP_GPIO_PIN   GPIO_PIN_5       // GPIO 引脚 PK5
 
 typedef enum {
     MODE_DATE,
@@ -81,6 +93,10 @@ void 		S800_GPIO_Init(void);
 void		S800_I2C0_Init(void);
 void		S800_UART_Init(void);
 void        Power_On_Init(void);
+void  		Beep_Init(void);
+void        Buzzer_On(void);
+void        Buzzer_Off(void);
+void 		Buzzer_SetFrequency(uint32_t);
 void        Show(uint8_t*);
 void        Blank(void);
 void        ShowTime(void);
@@ -112,27 +128,31 @@ uint8_t lastKeyState = 0xFF;
 uint8_t Buffer[8]; // 全局要通过数码管显示的内容都要进入这个Buffer数组
 
 // 各种显示数组初始化
-// uint8_t Time_buffer[] = {0,8,0,0,0,0,36,36};
 _time Time_buffer = {17,23,58};
-// uint8_t Date_buffer[] = {2,0,2,5,0,5,2,8};
 _date Date_buffer = {2025,5,29};
-// uint8_t Alarm_buffer[] = {0,0,0,5,0,0,36,36};
 _time Alarm_buffer = {0,0,15};
 uint8_t Blank_buffer[] = {36,36,36,36,36,36,36,36};
 uint8_t Float_buffer[16] = {0X0};
 
-// 流水功能使用的全局变量
+// “流水”使用的全局变量
 int float_cnt = 0;
 uint16_t time_cnt = 0;
 uint8_t left_float_speed = 0;
 uint8_t right_float_speed = 0;
-// 设置显示数据使用的全局变量
+// “设置显示数据”使用的全局变量
 uint8_t date_blink_start_bit = 0;
 uint8_t date_blink_end_bit = 3;
 uint8_t blink_start_bit = 0;
 uint8_t blink_end_bit = 1;
 uint8_t bit_cnt = 0; 
 uint16_t blink_time_cnt = 0;
+// “运行”使用的全局变量
+uint16_t run_time_cnt = 0;
+bool time_sec_carry = false;
+bool time_min_carry = false;
+bool alarm_sec_carry = false;
+bool alarm_min_carry = false;
+bool beep_flag = false;
 
 void SysTickIntHandler(void){
 	// UARTStringPutNonBlocking("\r\nSYSTICK_INT\r\n");
@@ -165,6 +185,7 @@ void SysTickIntHandler(void){
 			}
 			break;
 		}
+
 		case RIGHT_FLOAT:{
 			int i, tmp;
 			time_cnt++;
@@ -192,6 +213,7 @@ void SysTickIntHandler(void){
 			}
 			break;
 		}
+
 		case SET_VALUE:{
 			int i;
 			static bool is_show = true;
@@ -229,6 +251,56 @@ void SysTickIntHandler(void){
 			}
 			break;
 		}
+
+		case RUN:{
+			run_time_cnt ++;
+			if(beep_flag == true){
+				Buzzer_On();
+			}
+
+			if(run_time_cnt % 1000 == 0){
+				switch(currentMode){
+					case MODE_TIME: 
+						Time_buffer.sec = (Time_buffer.sec+1)%60;
+						if(Time_buffer.sec == 0) time_sec_carry = true;
+						if(time_sec_carry){
+							time_sec_carry = false; 
+							Time_buffer.min++;
+							if(Time_buffer.min == 60) time_min_carry = true;
+							Time_buffer.min %= 60;
+						}
+						if(time_min_carry){
+							time_min_carry = false; 
+							Time_buffer.hour = (Time_buffer.hour+1)%100;
+						}
+						ShowTime();
+						break;
+					case MODE_ALARM: 
+						Alarm_buffer.sec--; 
+						if(Alarm_buffer.sec == 0xff){
+							if(Alarm_buffer.min == 0 && Alarm_buffer.hour == 0){beep_flag = true; Alarm_buffer.sec++; break;}
+							else{
+								Alarm_buffer.sec = 59;
+								alarm_sec_carry = true;
+							}
+						}
+						if(alarm_sec_carry){
+							alarm_sec_carry = false; 
+							Time_buffer.min--;
+							if(Time_buffer.min == 0xff) alarm_min_carry = true;
+							Time_buffer.min = 59;
+						}
+						if(alarm_min_carry){
+							alarm_min_carry = false; 
+							Time_buffer.hour--;
+						}
+						ShowAlarm();
+						break;
+				}
+			}
+				
+			break;
+		}
 	}
 }
 
@@ -262,6 +334,7 @@ int main(void){
 	S800_GPIO_Init();
 	S800_I2C0_Init();
 	S800_UART_Init();
+	Beep_Init();
 	Power_On_Init();
 
 	IntEnable(INT_UART0);
@@ -280,6 +353,13 @@ int main(void){
 	ui32IntPriorityUart0 = IntPriorityGet(INT_UART0);
 	ui32IntPrioritySystick = IntPriorityGet(FAULT_SYSTICK);
 	
+	// // 播放 2kHz 音调
+    // Buzzer_On();
+    // Delay(6000000); // 延时约 1 秒
+
+    // // 关闭蜂鸣器
+    // Buzzer_Off();
+
 	while (1){	
 		
 		Show(Buffer);
@@ -302,36 +382,34 @@ int main(void){
 
 				break;
 			}
+
 			case LEFT_FLOAT:{
 				if(!(currentKey & 0x40) && (lastKeyState & 0x40)) {
 					left_float_speed = (left_float_speed+1) % 2;
 				}
 				Load_date(Float_buffer, Date_buffer);
-				// memcpy(Float_buffer, Buffer, sizeof(Buffer));
 				Load_time(Float_buffer+8, Time_buffer);
-				// memcpy(Float_buffer+8, Buffer, sizeof(Buffer));
 
 				currentState = CheckStateSwitch(currentKey, currentState);
 				lastKeyState = currentKey;
 
 				break;
 			}
+
 			case RIGHT_FLOAT:{
 				if(!(currentKey & 0x20) && (lastKeyState & 0x20)) {
 					right_float_speed = (right_float_speed+1) % 2;
 				}
 
 				Load_date(Float_buffer, Date_buffer);
-				// memcpy(Float_buffer, Buffer, sizeof(Buffer));
 				Load_time(Float_buffer+8, Time_buffer);
-				// memcpy(Float_buffer+8, Buffer, sizeof(Buffer));
-
 
 				currentState = CheckStateSwitch(currentKey, currentState);
 				lastKeyState = currentKey;
 
 				break;
 			}
+
 			case SET_VALUE:{
 				switch (currentMode){
 					case MODE_DATE:
@@ -417,7 +495,14 @@ int main(void){
 				lastKeyState = currentKey;
 
 				break;
+			}
 
+			case RUN:{
+
+				currentState = CheckStateSwitch(currentKey, currentState);
+				lastKeyState = currentKey;
+
+				break;
 			}
 		}
 	}
@@ -425,21 +510,23 @@ int main(void){
 
 State CheckStateSwitch(uint8_t key, State lastState){
 	if(!(key & 0x01) && (lastKeyState & 0x01)) {
+		Buzzer_Off();
 		return SET_MODE; // 按SW1进入模式切换状态
 	}
 	else if (!(key & 0x02) && (lastKeyState & 0x02)){
-		// bit_cnt = 0;
-		// blink_start_bit = 0;
-		// blink_end_bit = 1;
+		Buzzer_Off();
 		return SET_VALUE; // 按SW2进入设置显示内容状态
 	}
 	else if (!(key & 0x80) && (lastKeyState & 0x80)){
+		Buzzer_Off();
 		return RUN; // 按SW8进入运行状态
 	}
 	else if (!(key & 0x40) && (lastKeyState & 0x40)){
+		Buzzer_Off();
 		return LEFT_FLOAT; // 按SW7进入左流水显示状态
 	}
 	else if (!(key & 0x20) && (lastKeyState & 0x20)){
+		Buzzer_Off();
 		return RIGHT_FLOAT; // 按SW6进入右流水显示状态
 	}
 	else{ // 保持原状态
@@ -499,6 +586,44 @@ void Delay(uint32_t value)
 	for(ui32Loop = 0; ui32Loop < value; ui32Loop++){};
 }
 
+// 打开蜂鸣器
+void Buzzer_On(void) {
+    PWMOutputState(BEEP_PWM_BASE, BEEP_PWM_OUT_BIT, true);
+}
+
+// 关闭蜂鸣器
+void Buzzer_Off(void) {
+    PWMOutputState(BEEP_PWM_BASE, BEEP_PWM_OUT_BIT, false);
+}
+
+// 设置蜂鸣频率
+void Buzzer_SetFrequency(uint32_t frequency) {
+    uint32_t ui32Load = (SysCtlClockGet() / frequency) - 1;
+    PWMGenPeriodSet(BEEP_PWM_BASE, BEEP_PWM_GEN, ui32Load);
+    PWMPulseWidthSet(BEEP_PWM_BASE, BEEP_PWM_OUT, ui32Load / 2); // 保持 50% 占空比
+}
+
+void Beep_Init(void){
+	uint32_t ui32PWMClock = SysCtlClockGet();       // 获取系统时钟（20 MHz）
+    uint32_t ui32Load = (ui32PWMClock / 523) - 1; // 计算周期值（20 MHz / 2000 = 10000）
+
+    SysCtlPeripheralEnable(SYSCTL_PERIPH_PWM0);   // 使能 PWM0 模块
+    SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOK);  // 使能 PORTK
+
+    GPIOPinTypePWM(BEEP_GPIO_PORT, BEEP_GPIO_PIN);  // 将 PK5 配置为 PWM 输出
+    GPIOPinConfigure(GPIO_PK5_M0PWM7);              // 映射到 M0PWM7
+
+    PWMGenConfigure(BEEP_PWM_BASE, BEEP_PWM_GEN,
+                    PWM_GEN_MODE_DOWN | PWM_GEN_MODE_NO_SYNC);
+
+    PWMGenPeriodSet(BEEP_PWM_BASE, BEEP_PWM_GEN, ui32Load);
+
+    PWMPulseWidthSet(BEEP_PWM_BASE, BEEP_PWM_OUT, ui32Load / 2); // 4999
+
+    PWMGenEnable(BEEP_PWM_BASE, BEEP_PWM_GEN);
+
+    // PWMOutputState(BEEP_PWM_BASE, BEEP_PWM_OUT_BIT, true);
+}
 
 void Power_On_Init(void){
 	uint8_t ID[] = {4,2,9,1,0,0,1,6};
