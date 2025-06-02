@@ -1,6 +1,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <string.h>
+#include <stdio.h>
 #include "hw_memmap.h"
 #include "debug.h"
 #include "gpio.h"
@@ -18,8 +19,6 @@
 #include "driverlib/pin_map.h"
 #include "driverlib/pwm.h"
 
-#define DISABLE_INTERRUPTS() HWREG(NVIC_DIS0) = 0xFFFFFFFF
-#define ENABLE_INTERRUPTS() HWREG(NVIC_EN0) = 0xFFFFFFFF
 //*****************************************************************************
 //
 //I2C GPIO chip address and resigster define
@@ -49,12 +48,15 @@
 #define TCA6424_OUTPUT_PORT2			0x06
 
 // 蜂鸣器地址配置
-#define BEEP_PWM_BASE   PWM0_BASE        // PWM0 模块
-#define BEEP_PWM_GEN    PWM_GEN_3        // PWM 生成器组 3（对应通道 6-7）
-#define BEEP_PWM_OUT    PWM_OUT_7        // PWM 通道 7
-#define BEEP_PWM_OUT_BIT PWM_OUT_7_BIT   // 通道位掩码
-#define BEEP_GPIO_PORT  GPIO_PORTK_BASE  // GPIO 端口 K
-#define BEEP_GPIO_PIN   GPIO_PIN_5       // GPIO 引脚 PK5
+#define BEEP_PWM_BASE   				PWM0_BASE        // PWM0 模块
+#define BEEP_PWM_GEN    				PWM_GEN_3        // PWM 生成器组 3（对应通道 6-7）
+#define BEEP_PWM_OUT    				PWM_OUT_7        // PWM 通道 7
+#define BEEP_PWM_OUT_BIT 				PWM_OUT_7_BIT   // 通道位掩码
+#define BEEP_GPIO_PORT  				GPIO_PORTK_BASE  // GPIO 端口 K
+#define BEEP_GPIO_PIN   				GPIO_PIN_5       // GPIO 引脚 PK5
+
+// 串口接收指令最大长度
+#define SERIAL_LENGTH_MAX               128
 
 typedef enum {
     MODE_DATE,
@@ -83,6 +85,14 @@ typedef struct {
 	uint8_t day;
 } _date;
 
+// UART 接收状态结构体
+typedef struct {
+    volatile char rxBuffer[SERIAL_LENGTH_MAX];  // 接收缓冲区
+	char cmdBuffer[SERIAL_LENGTH_MAX];          // 命令处理缓冲区
+    volatile uint16_t rxIndex;                  // 当前接收位置
+    volatile bool cmdReady;                     // 命令就绪标志
+} UART_RxState;
+
 // 函数声明
 uint8_t 	I2C0_WriteByte(uint8_t DevAddr, uint8_t RegAddr, uint8_t WriteData);
 uint8_t 	I2C0_ReadByte(uint8_t DevAddr, uint8_t RegAddr);
@@ -105,9 +115,13 @@ void        ShowAlarm(void);
 void        Load_date(uint8_t *, _date);
 void        Load_time(uint8_t *, _time);
 
-void UARTStringPut(uint8_t *);
-void UARTStringPutNonBlocking(const char *);
-
+void 		UARTStringPut(uint8_t *);
+void 		UARTStringPutNonBlocking(const char *);
+void 		UART0_ProcessCommands(void);
+void		ProcessCommand(const char* cmd);
+void 		RemoveSpaces(char *buffer);
+uint8_t* 	Uint8ToStringWithCrLf(uint8_t value);
+uint8_t* 	Uint16ToStringWithCrLf(uint16_t value);
 
 // 全局变量
 volatile uint8_t result; // 接收I2C0_WriteByte函数返回的错误类型，0代表无错
@@ -154,9 +168,11 @@ bool alarm_sec_carry = false;
 bool alarm_min_carry = false;
 bool beep_flag = false;
 
+// “串口功能”使用的全局变量
+UART_RxState UART0_Rx = {{0}, 0, false, {0}};
+uint8_t txBuffer[SERIAL_LENGTH_MAX];
+
 void SysTickIntHandler(void){
-	// UARTStringPutNonBlocking("\r\nSYSTICK_INT\r\n");
-	// UARTStringPut((uint8_t *)"\r\nSYSTICK_INT\r\n");
 	switch (currentState){
 		case LEFT_FLOAT:{
 			int i, tmp;
@@ -308,24 +324,56 @@ void UART0_Handler(void)
 {	
     uint32_t int_status = UARTIntStatus(UART0_BASE, true);
 	UARTStringPutNonBlocking("\r\nUART0_INT\r\n");
-	// UARTStringPut((uint8_t *)"\r\nUART0_INT\r\n");
     UARTIntClear(UART0_BASE, int_status);
 
-    // 仅处理可用字符（非阻塞）
-    while(UARTCharsAvail(UART0_BASE)) { // 检测UART接收FIFO中是否有可用数据,有数据时返回True
-        int32_t received = UARTCharGetNonBlocking(UART0_BASE);
-        if(received != -1) {
-			// 可靠发送（阻塞式，但每个字符等待时间很短）
-            while(!UARTCharPutNonBlocking(UART0_BASE, (uint8_t)received)) {
-                // 等待发送FIFO有空间
-                // 在115200波特率下，等待时间很短（约87?s/字符）
+	// 检查接收中断或接收超时中断
+    if(int_status & (UART_INT_RX | UART_INT_RT)) { // 检测int_status是否包含这两个中断标志位
+        // 处理所有可用字符
+        while(UARTCharsAvail(UART0_BASE)) {
+            int32_t received = UARTCharGetNonBlocking(UART0_BASE);
+            if(received == -1) break;
+            
+            // 回车检测 (0x0D) - Windows 风格
+            if(received == '\n') {
+				UARTStringPut((uint8_t *)"\r\n1111111111111\r\n");
+                if(UART0_Rx.rxIndex > 0) {
+                    // 添加字符串终止符
+                    UART0_Rx.rxBuffer[UART0_Rx.rxIndex] = '\0';
+                    UART0_Rx.cmdReady = true;
+                }
+                // 重置索引（确保下一次接收覆盖旧数据）
+                UART0_Rx.rxIndex = 0;
+                continue;
+            }
+			
+			// 普通字符处理
+            if(UART0_Rx.rxIndex < (SERIAL_LENGTH_MAX - 1)) {
+                UART0_Rx.rxBuffer[UART0_Rx.rxIndex++] = (char)received;
+            } 
+			else {
+                // 如果缓冲区溢出,则丢弃最旧字符
+                memmove((void*)UART0_Rx.rxBuffer, 
+                        (void*)&UART0_Rx.rxBuffer[1], 
+                        SERIAL_LENGTH_MAX - 2);
+                UART0_Rx.rxBuffer[SERIAL_LENGTH_MAX - 2] = (char)received;
+                UART0_Rx.rxIndex = SERIAL_LENGTH_MAX - 1;
             }
         }
     }
+    // // 仅处理可用字符（非阻塞）
+    // while(UARTCharsAvail(UART0_BASE)) { // 检测UART接收FIFO中是否有可用数据,有数据时返回True
+    //     int32_t received = UARTCharGetNonBlocking(UART0_BASE);
+    //     if(received != -1) {
+	// 		// 可靠发送（阻塞式，但每个字符等待时间很短）
+    //         while(!UARTCharPutNonBlocking(UART0_BASE, (uint8_t)received)) {
+    //             // 等待发送FIFO有空间
+    //             // 在115200波特率下，等待时间很短（约87?s/字符）
+    //         }
+    //     }
+    // }
 }
 
 int main(void){
-	//use internal 16M oscillator, HSI
     ui32SysClock = SysCtlClockFreqSet((SYSCTL_XTAL_16MHZ |SYSCTL_OSC_INT | SYSCTL_USE_PLL |SYSCTL_CFG_VCO_480), 20000000);
 	SysTickPeriodSet(ui32SysClock/1000);
 	SysTickEnable();
@@ -346,24 +394,18 @@ int main(void){
 	IntPriorityGroupingSet(3);														//Set all priority to pre-emtption priority
 	
 	IntPrioritySet(INT_UART0,3);													//Set INT_UART0 to highest priority
-	IntPrioritySet(FAULT_SYSTICK,0x0e0);									//Set INT_SYSTICK to lowest priority
+	IntPrioritySet(FAULT_SYSTICK,0x0e0);											//Set INT_SYSTICK to lowest priority
 	
 	ui32IntPriorityGroup = IntPriorityGroupingGet();
 
 	ui32IntPriorityUart0 = IntPriorityGet(INT_UART0);
 	ui32IntPrioritySystick = IntPriorityGet(FAULT_SYSTICK);
-	
-	// // 播放 2kHz 音调
-    // Buzzer_On();
-    // Delay(6000000); // 延时约 1 秒
-
-    // // 关闭蜂鸣器
-    // Buzzer_Off();
 
 	while (1){	
 		
 		Show(Buffer);
 		currentKey = ReadKey();
+		UART0_ProcessCommands();
 
 		switch (currentState){
 			case SET_MODE:{
@@ -534,6 +576,54 @@ State CheckStateSwitch(uint8_t key, State lastState){
 	}
 }
 
+// 命令处理函数（在主循环中调用）
+void UART0_ProcessCommands(void) {
+    // 检查命令就绪标志
+    if(UART0_Rx.cmdReady) {
+        // 进入临界区（禁用中断）
+        uint32_t int_state = IntMasterDisable();
+		UARTStringPut((uint8_t *)"\r\n22222222222222\r\n");        
+        // 复制接收缓冲区到命令缓冲区
+        strncpy(UART0_Rx.cmdBuffer, (const char*)UART0_Rx.rxBuffer, SERIAL_LENGTH_MAX);
+        
+        // 清除标志
+        UART0_Rx.cmdReady = false;
+        
+        // 退出临界区（恢复中断状态）
+        if(!int_state) IntMasterEnable();
+        
+        // 处理命令（在中断外执行）
+		// UARTStringPut((uint8_t *)UART0_Rx.cmdBuffer);
+		// UARTStringPut((uint8_t *)"\r\n");
+
+		RemoveSpaces(UART0_Rx.cmdBuffer);
+        ProcessCommand(UART0_Rx.cmdBuffer);
+    }
+}
+
+void ProcessCommand(const char* cmd){
+	// UARTStringPut((uint8_t *)cmd);
+	// UARTStringPut((uint8_t *)"\r\n");
+
+	if(strcmp(cmd, "GET:DATEYEAR") == 0){
+		UARTStringPut(Uint16ToStringWithCrLf(Date_buffer.year));
+	}
+}
+
+void RemoveSpaces(char *buffer) {
+    char *read = buffer;  // 读指针,遍历原始字符串
+    char *write = buffer; // 写指针,写入非空格字符   
+	
+	if (buffer == NULL) return;
+
+    while (*read != '\0') {
+        if (*read != ' ') {*write = *read; write++; read++;}
+        else read++;
+    }
+
+    *write = '\0';
+}
+
 uint8_t ReadKey(){
 	result = I2C0_ReadByte(TCA6424_I2CADDR, TCA6424_INPUT_PORT0);
 	return result;
@@ -618,11 +708,9 @@ void Beep_Init(void){
 
     PWMGenPeriodSet(BEEP_PWM_BASE, BEEP_PWM_GEN, ui32Load);
 
-    PWMPulseWidthSet(BEEP_PWM_BASE, BEEP_PWM_OUT, ui32Load / 2); // 4999
+    PWMPulseWidthSet(BEEP_PWM_BASE, BEEP_PWM_OUT, ui32Load / 2); 
 
     PWMGenEnable(BEEP_PWM_BASE, BEEP_PWM_GEN);
-
-    // PWMOutputState(BEEP_PWM_BASE, BEEP_PWM_OUT_BIT, true);
 }
 
 void Power_On_Init(void){
@@ -660,13 +748,6 @@ void Blank(){
 
 void Show(uint8_t* Buffer){ // 先默认输出内容是八位
 	int i;
-    // uint8_t local_buffer[8];
-    
-    // // 进入临界区
-    // DISABLE_INTERRUPTS();
-    // memcpy(local_buffer, Buffer, sizeof(local_buffer));
-    // ENABLE_INTERRUPTS(); // 退出临界区
-
 	for(i=0; i<8; i++){
 		result = I2C0_WriteByte(TCA6424_I2CADDR,TCA6424_OUTPUT_PORT2,(uint8_t)(1<<i));
 		result = I2C0_WriteByte(TCA6424_I2CADDR,TCA6424_OUTPUT_PORT1,num_seg7[Buffer[i]]);
@@ -718,6 +799,15 @@ void UARTStringPutNonBlocking(const char *cMessage)
 {
 	while(*cMessage!='\0')
 		UARTCharPutNonBlocking(UART0_BASE,*(cMessage++));
+}
+
+uint8_t* Uint8ToStringWithCrLf(uint8_t value) {
+    sprintf((char*)txBuffer, "%u\r\n", value);  // 十进制转换 + "\r\n"
+    return txBuffer;
+}
+uint8_t* Uint16ToStringWithCrLf(uint16_t value) {
+    sprintf((char*)txBuffer, "%u\r\n", value);  // 十进制转换 + "\r\n"
+    return txBuffer;
 }
 
 void S800_UART_Init(void){

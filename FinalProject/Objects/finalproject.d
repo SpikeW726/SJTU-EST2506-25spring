@@ -2,6 +2,7 @@
 .\objects\finalproject.o: C:\Keil_v5.28\ARM\ARMCC\Bin\..\include\stdint.h
 .\objects\finalproject.o: C:\Keil_v5.28\ARM\ARMCC\Bin\..\include\stdbool.h
 .\objects\finalproject.o: C:\Keil_v5.28\ARM\ARMCC\Bin\..\include\string.h
+.\objects\finalproject.o: C:\Keil_v5.28\ARM\ARMCC\Bin\..\include\stdio.h
 .\objects\finalproject.o: .\inc\hw_memmap.h
 .\objects\finalproject.o: .\driverlib\debug.h
 .\objects\finalproject.o: .\driverlib\gpio.h
