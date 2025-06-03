@@ -120,8 +120,8 @@ void 		UARTStringPutNonBlocking(const char *);
 void 		UART0_ProcessCommands(void);
 void		ProcessCommand(const char* cmd);
 void 		RemoveSpaces(char *buffer);
-uint8_t* 	Uint8ToStringWithCrLf(uint8_t value);
-uint8_t* 	Uint16ToStringWithCrLf(uint16_t value);
+uint8_t* 	Uint8ToString(uint8_t value, const char* suffix);
+uint8_t* 	Uint16ToString(uint16_t value, const char* suffix);
 
 // 全局变量
 volatile uint8_t result; // 接收I2C0_WriteByte函数返回的错误类型，0代表无错
@@ -323,7 +323,7 @@ void SysTickIntHandler(void){
 void UART0_Handler(void)
 {	
     uint32_t int_status = UARTIntStatus(UART0_BASE, true);
-	UARTStringPutNonBlocking("\r\nUART0_INT\r\n");
+	// UARTStringPutNonBlocking("\r\nUART0_INT\r\n");
     UARTIntClear(UART0_BASE, int_status);
 
 	// 检查接收中断或接收超时中断
@@ -335,7 +335,7 @@ void UART0_Handler(void)
             
             // 回车检测 (0x0D) - Windows 风格
             if(received == '\n') {
-				UARTStringPut((uint8_t *)"\r\n1111111111111\r\n");
+				// UARTStringPut((uint8_t *)"\r\n1111111111111\r\n");
                 if(UART0_Rx.rxIndex > 0) {
                     // 添加字符串终止符
                     UART0_Rx.rxBuffer[UART0_Rx.rxIndex] = '\0';
@@ -360,17 +360,6 @@ void UART0_Handler(void)
             }
         }
     }
-    // // 仅处理可用字符（非阻塞）
-    // while(UARTCharsAvail(UART0_BASE)) { // 检测UART接收FIFO中是否有可用数据,有数据时返回True
-    //     int32_t received = UARTCharGetNonBlocking(UART0_BASE);
-    //     if(received != -1) {
-	// 		// 可靠发送（阻塞式，但每个字符等待时间很短）
-    //         while(!UARTCharPutNonBlocking(UART0_BASE, (uint8_t)received)) {
-    //             // 等待发送FIFO有空间
-    //             // 在115200波特率下，等待时间很短（约87?s/字符）
-    //         }
-    //     }
-    // }
 }
 
 int main(void){
@@ -582,7 +571,7 @@ void UART0_ProcessCommands(void) {
     if(UART0_Rx.cmdReady) {
         // 进入临界区（禁用中断）
         uint32_t int_state = IntMasterDisable();
-		UARTStringPut((uint8_t *)"\r\n22222222222222\r\n");        
+		// UARTStringPut((uint8_t *)"\r\n22222222222222\r\n");        
         // 复制接收缓冲区到命令缓冲区
         strncpy(UART0_Rx.cmdBuffer, (const char*)UART0_Rx.rxBuffer, SERIAL_LENGTH_MAX);
         
@@ -605,8 +594,37 @@ void ProcessCommand(const char* cmd){
 	// UARTStringPut((uint8_t *)cmd);
 	// UARTStringPut((uint8_t *)"\r\n");
 
-	if(strcmp(cmd, "GET:DATEYEAR") == 0){
-		UARTStringPut(Uint16ToStringWithCrLf(Date_buffer.year));
+	if(strncmp(cmd, "*GET:", 5) == 0){
+		if(strncmp(cmd+5, "DATE", 4) == 0){
+			if(strcmp(cmd+9, "YEAR") == 0) {UARTStringPut(Uint16ToString(Date_buffer.year, "%u\r\n"));}
+			else if(strcmp(cmd+9, "MONTH") == 0) {UARTStringPut(Uint8ToString(Date_buffer.mon, "%u\r\n"));}
+			else if(strcmp(cmd+9, "DATE") == 0) {UARTStringPut(Uint8ToString(Date_buffer.day, "%u\r\n"));}
+			else if(strcmp(cmd+9, "YEARMONTH") == 0) {UARTStringPut(Uint16ToString(Date_buffer.year, "%u ")); UARTStringPut(Uint8ToString(Date_buffer.mon, "%u\r\n"));}
+			else if(strcmp(cmd+9, "MONTHDATE") == 0) {UARTStringPut(Uint8ToString(Date_buffer.mon, "%u ")); UARTStringPut(Uint8ToString(Date_buffer.day, "%u\r\n"));}
+			else if(strcmp(cmd+9, "YEARDATE") == 0) {UARTStringPut(Uint16ToString(Date_buffer.year, "%u ")); UARTStringPut(Uint8ToString(Date_buffer.day, "%u\r\n"));}
+			else if(strcmp(cmd+9, "YEARMONTHDATE") == 0) {UARTStringPut(Uint16ToString(Date_buffer.year, "%u ")); UARTStringPut(Uint8ToString(Date_buffer.mon, "%u ")); UARTStringPut(Uint8ToString(Date_buffer.day, "%u\r\n"));}
+		}
+		else if(strncmp(cmd+5, "TIME", 4) == 0){
+			if(strcmp(cmd+9, "HOUR") == 0) {UARTStringPut(Uint8ToString(Time_buffer.hour, "%u\r\n"));}
+			else if(strcmp(cmd+9, "MIN") == 0) {UARTStringPut(Uint8ToString(Time_buffer.min, "%u\r\n"));}
+			else if(strcmp(cmd+9, "SEC") == 0) {UARTStringPut(Uint8ToString(Time_buffer.sec, "%u\r\n"));}
+			else if(strcmp(cmd+9, "HOURMIN") == 0) {UARTStringPut(Uint8ToString(Time_buffer.hour, "%u ")); UARTStringPut(Uint8ToString(Time_buffer.min, "%u\r\n"));}
+			else if(strcmp(cmd+9, "MINSEC") == 0) {UARTStringPut(Uint8ToString(Time_buffer.min, "%u ")); UARTStringPut(Uint8ToString(Time_buffer.sec, "%u\r\n"));}
+			else if(strcmp(cmd+9, "HOURSEC") == 0) {UARTStringPut(Uint8ToString(Time_buffer.hour, "%u ")); UARTStringPut(Uint8ToString(Time_buffer.sec, "%u\r\n"));}
+			else if(strcmp(cmd+9, "HOURMINSEC") == 0) {UARTStringPut(Uint8ToString(Time_buffer.hour, "%u ")); UARTStringPut(Uint8ToString(Time_buffer.min, "%u ")); UARTStringPut(Uint8ToString(Time_buffer.sec, "%u\r\n"));}
+		}
+		else if(strncmp(cmd+5, "ALARM", 5) == 0){
+			UARTStringPut(Uint8ToString(Alarm_buffer.hour, "%u "));
+			UARTStringPut(Uint8ToString(Alarm_buffer.min, "%u "));
+			UARTStringPut(Uint8ToString(Alarm_buffer.sec, "%u\r\n"));
+		}
+	}
+
+	else if(strncmp(cmd, "*SET:", 5) == 0){
+		if (currentState != SET_VALUE) UARTStringPut((uint8_t *)"\r\nPress SW2 to switch to SET_VALUE mode first!!!\r\n");
+		else{
+			
+		}
 	}
 }
 
@@ -801,12 +819,12 @@ void UARTStringPutNonBlocking(const char *cMessage)
 		UARTCharPutNonBlocking(UART0_BASE,*(cMessage++));
 }
 
-uint8_t* Uint8ToStringWithCrLf(uint8_t value) {
-    sprintf((char*)txBuffer, "%u\r\n", value);  // 十进制转换 + "\r\n"
+uint8_t* Uint8ToString(uint8_t value, const char* suffix) {
+    sprintf((char*)txBuffer, suffix, value);
     return txBuffer;
 }
-uint8_t* Uint16ToStringWithCrLf(uint16_t value) {
-    sprintf((char*)txBuffer, "%u\r\n", value);  // 十进制转换 + "\r\n"
+uint8_t* Uint16ToString(uint16_t value, const char* suffix) {
+    sprintf((char*)txBuffer, suffix, value);
     return txBuffer;
 }
 
