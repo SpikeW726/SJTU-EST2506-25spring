@@ -3,7 +3,7 @@
 <title>Static Call Graph - [.\Objects\exp1.axf]</title></head>
 <body><HR>
 <H1>Static Call Graph for image .\Objects\exp1.axf</H1><HR>
-<BR><P>#&#060CALLGRAPH&#062# ARM Linker, 5060750: Last Updated: Wed Jun 04 09:38:15 2025
+<BR><P>#&#060CALLGRAPH&#062# ARM Linker, 5060750: Last Updated: Thu Jun 12 00:56:03 2025
 <BR><P>
 <H3>Maximum Stack Usage =        184 bytes + Unknown(Functions without stacksize, Cycles, Untraceable Function Pointers)</H3><H3>
 Call chain for Maximum Stack Depth:</H3>
@@ -1727,7 +1727,7 @@ Global Symbols
 <BR>[Called By]<UL><LI><a href="#[f0]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Power_On_Init
 </UL>
 
-<P><STRONG><a name="[d6]"></a>Buzzer_Off</STRONG> (Thumb, 14 bytes, Stack size 8 bytes, finalproject.o(i.Buzzer_Off))
+<P><STRONG><a name="[d6]"></a>Buzzer_Off</STRONG> (Thumb, 20 bytes, Stack size 8 bytes, finalproject.o(i.Buzzer_Off))
 <BR><BR>[Stack]<UL><LI>Max Depth = 8<LI>Call Chain = Buzzer_Off
 </UL>
 <BR>[Calls]<UL><LI><a href="#[d7]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;PWMOutputState
@@ -1743,7 +1743,7 @@ Global Symbols
 <BR>[Called By]<UL><LI><a href="#[b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;SysTickIntHandler
 </UL>
 
-<P><STRONG><a name="[d9]"></a>CheckStateSwitch</STRONG> (Thumb, 130 bytes, Stack size 16 bytes, finalproject.o(i.CheckStateSwitch))
+<P><STRONG><a name="[d9]"></a>CheckStateSwitch</STRONG> (Thumb, 154 bytes, Stack size 16 bytes, finalproject.o(i.CheckStateSwitch))
 <BR><BR>[Stack]<UL><LI>Max Depth = 24<LI>Call Chain = CheckStateSwitch &rArr; Buzzer_Off
 </UL>
 <BR>[Calls]<UL><LI><a href="#[d6]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Buzzer_Off
@@ -1952,14 +1952,14 @@ Global Symbols
 <BR><BR>[Called By]<UL><LI><a href="#[99]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;main
 </UL>
 
-<P><STRONG><a name="[104]"></a>Load_date</STRONG> (Thumb, 88 bytes, Stack size 20 bytes, finalproject.o(i.Load_date))
+<P><STRONG><a name="[104]"></a>Load_date</STRONG> (Thumb, 176 bytes, Stack size 20 bytes, finalproject.o(i.Load_date))
 <BR><BR>[Stack]<UL><LI>Max Depth = 20<LI>Call Chain = Load_date
 </UL>
 <BR>[Called By]<UL><LI><a href="#[99]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;main
 <LI><a href="#[103]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ShowDate
 </UL>
 
-<P><STRONG><a name="[101]"></a>Load_time</STRONG> (Thumb, 84 bytes, Stack size 12 bytes, finalproject.o(i.Load_time))
+<P><STRONG><a name="[101]"></a>Load_time</STRONG> (Thumb, 172 bytes, Stack size 12 bytes, finalproject.o(i.Load_time))
 <BR><BR>[Stack]<UL><LI>Max Depth = 12<LI>Call Chain = Load_time
 </UL>
 <BR>[Called By]<UL><LI><a href="#[99]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;main
@@ -2000,7 +2000,7 @@ Global Symbols
 <BR>[Called By]<UL><LI><a href="#[99]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;main
 </UL>
 
-<P><STRONG><a name="[f2]"></a>ProcessCommand</STRONG> (Thumb, 2148 bytes, Stack size 16 bytes, finalproject.o(i.ProcessCommand))
+<P><STRONG><a name="[f2]"></a>ProcessCommand</STRONG> (Thumb, 2934 bytes, Stack size 16 bytes, finalproject.o(i.ProcessCommand))
 <BR><BR>[Stack]<UL><LI>Max Depth = 168 + Unknown Stack Size
 <LI>Call Chain = ProcessCommand &rArr; Uint8ToString &rArr; __2sprintf &rArr; _printf_char_common &rArr; __printf
 </UL>
@@ -2021,7 +2021,7 @@ Global Symbols
 <BR>[Called By]<UL><LI><a href="#[99]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;main
 </UL>
 
-<P><STRONG><a name="[10c]"></a>RemoveSpaces</STRONG> (Thumb, 42 bytes, Stack size 0 bytes, finalproject.o(i.RemoveSpaces))
+<P><STRONG><a name="[10c]"></a>RemoveSpaces</STRONG> (Thumb, 66 bytes, Stack size 0 bytes, finalproject.o(i.RemoveSpaces))
 <BR><BR>[Called By]<UL><LI><a href="#[10b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;UART0_ProcessCommands
 </UL>
 
@@ -2074,7 +2074,7 @@ Global Symbols
 <LI><a href="#[f0]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Power_On_Init
 </UL>
 
-<P><STRONG><a name="[100]"></a>ShowAlarm</STRONG> (Thumb, 36 bytes, Stack size 8 bytes, finalproject.o(i.ShowAlarm))
+<P><STRONG><a name="[100]"></a>ShowAlarm</STRONG> (Thumb, 68 bytes, Stack size 8 bytes, finalproject.o(i.ShowAlarm))
 <BR><BR>[Stack]<UL><LI>Max Depth = 20<LI>Call Chain = ShowAlarm &rArr; Load_time
 </UL>
 <BR>[Calls]<UL><LI><a href="#[101]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Load_time
@@ -2083,7 +2083,7 @@ Global Symbols
 <LI><a href="#[b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;SysTickIntHandler
 </UL>
 
-<P><STRONG><a name="[102]"></a>ShowAlarm2</STRONG> (Thumb, 44 bytes, Stack size 8 bytes, finalproject.o(i.ShowAlarm2))
+<P><STRONG><a name="[102]"></a>ShowAlarm2</STRONG> (Thumb, 68 bytes, Stack size 8 bytes, finalproject.o(i.ShowAlarm2))
 <BR><BR>[Stack]<UL><LI>Max Depth = 20<LI>Call Chain = ShowAlarm2 &rArr; Load_time
 </UL>
 <BR>[Calls]<UL><LI><a href="#[101]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Load_time
@@ -2092,7 +2092,7 @@ Global Symbols
 <LI><a href="#[b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;SysTickIntHandler
 </UL>
 
-<P><STRONG><a name="[103]"></a>ShowDate</STRONG> (Thumb, 36 bytes, Stack size 8 bytes, finalproject.o(i.ShowDate))
+<P><STRONG><a name="[103]"></a>ShowDate</STRONG> (Thumb, 68 bytes, Stack size 8 bytes, finalproject.o(i.ShowDate))
 <BR><BR>[Stack]<UL><LI>Max Depth = 28<LI>Call Chain = ShowDate &rArr; Load_date
 </UL>
 <BR>[Calls]<UL><LI><a href="#[104]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Load_date
@@ -2101,7 +2101,7 @@ Global Symbols
 <LI><a href="#[b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;SysTickIntHandler
 </UL>
 
-<P><STRONG><a name="[105]"></a>ShowTime</STRONG> (Thumb, 44 bytes, Stack size 8 bytes, finalproject.o(i.ShowTime))
+<P><STRONG><a name="[105]"></a>ShowTime</STRONG> (Thumb, 76 bytes, Stack size 8 bytes, finalproject.o(i.ShowTime))
 <BR><BR>[Stack]<UL><LI>Max Depth = 20<LI>Call Chain = ShowTime &rArr; Load_time
 </UL>
 <BR>[Calls]<UL><LI><a href="#[101]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Load_time
@@ -2142,7 +2142,7 @@ Global Symbols
 <BR><BR>[Called By]<UL><LI><a href="#[99]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;main
 </UL>
 
-<P><STRONG><a name="[b]"></a>SysTickIntHandler</STRONG> (Thumb, 976 bytes, Stack size 8 bytes, finalproject.o(i.SysTickIntHandler))
+<P><STRONG><a name="[b]"></a>SysTickIntHandler</STRONG> (Thumb, 1120 bytes, Stack size 8 bytes, finalproject.o(i.SysTickIntHandler))
 <BR><BR>[Stack]<UL><LI>Max Depth = 36<LI>Call Chain = SysTickIntHandler &rArr; ShowDate &rArr; Load_date
 </UL>
 <BR>[Calls]<UL><LI><a href="#[105]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ShowTime
@@ -2251,7 +2251,7 @@ Global Symbols
 <BR><BR>[Called By]<UL><LI><a href="#[b6]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__printf
 </UL>
 
-<P><STRONG><a name="[99]"></a>main</STRONG> (Thumb, 1926 bytes, Stack size 8 bytes, finalproject.o(i.main))
+<P><STRONG><a name="[99]"></a>main</STRONG> (Thumb, 2034 bytes, Stack size 8 bytes, finalproject.o(i.main))
 <BR><BR>[Stack]<UL><LI>Max Depth = 184 + Unknown Stack Size
 <LI>Call Chain = main &rArr; UART0_ProcessCommands &rArr; ProcessCommand &rArr; Uint8ToString &rArr; __2sprintf &rArr; _printf_char_common &rArr; __printf
 </UL>

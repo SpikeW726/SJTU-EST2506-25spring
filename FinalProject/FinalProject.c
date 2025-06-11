@@ -144,10 +144,14 @@ uint8_t lastKeyState = 0xFF;
 uint8_t Buffer[8]; // 全局要通过数码管显示的内容都要进入这个Buffer数组
 
 // 各种显示数组初始化
-_time Time_buffer = {17,23,58};
-_date Date_buffer = {2025,5,29};
+_time Time_buffer = {23,59,52};
+_time Time_RST_buffer = {23,59,52};
+_date Date_buffer = {2006,7,26};
+_date Date_RST_buffer = {2006,7,26};
 _time Alarm_buffer = {0,0,15};
-_time Alarm_buffer2 = {0,0,0};
+_time Alarm_RST_buffer = {0,0,15};
+_time Alarm_buffer2 = {23,59,59};
+_time Alarm_RST_buffer2 = {23,59,59};
 uint8_t Blank_buffer[] = {36,36,36,36,36,36,36,36};
 uint8_t Float_buffer[16] = {0X0};
 
@@ -175,8 +179,9 @@ bool beep_flag = false;
 UART_RxState UART0_Rx = {{0}, 0, false, {0}};
 uint8_t txBuffer[SERIAL_LENGTH_MAX];
 
-// "左右反转"使用的全区变量
+// "左右反转"和“串口控制是否显示”使用的全区变量
 bool reverse_flag = false; // false为从左向右显示,true为从右向左显示
+bool blank_flag = false; // false代表正常显示,true代表熄灭显示,但实际上在正常运作
 
 void SysTickIntHandler(void){
 	switch (currentState){
@@ -292,7 +297,7 @@ void SysTickIntHandler(void){
 				switch(currentMode){
 					case MODE_TIME:
 						if(Time_buffer.hour == Alarm_buffer2.hour && Time_buffer.min == Alarm_buffer2.min && Time_buffer.sec == Alarm_buffer2.sec){
-							beep_flag == true;
+							beep_flag = true;
 						}
 
 						Time_buffer.sec = (Time_buffer.sec+1)%60;
@@ -356,7 +361,6 @@ void UART0_Handler(void)
             
             // 回车检测 (0x0D) - Windows 风格
             if(received == '\n') {
-				// UARTStringPut((uint8_t *)"\r\n1111111111111\r\n");
                 if(UART0_Rx.rxIndex > 0) {
                     // 添加字符串终止符
                     UART0_Rx.rxBuffer[UART0_Rx.rxIndex] = '\0';
@@ -413,6 +417,12 @@ int main(void){
 
 	while (1){	
 		
+		if(blank_flag){
+			int i = 0;
+			for (; i<8; i++){
+				Buffer[i] = Blank_buffer[i];
+			}
+		}
 		Show(Buffer);
 		currentKey = ReadKey();
 		UART0_ProcessCommands();
@@ -421,16 +431,19 @@ int main(void){
 			case SET_MODE:{
 				// 按键检测（下降沿触发）
 				if(!(currentKey & 0x01) && (lastKeyState & 0x01)) {
+					bit_cnt = 0;
+					blink_start_bit = 0; blink_end_bit = 1;
+					date_blink_start_bit = 0; date_blink_end_bit = 3;
 					currentMode = (currentMode + 1) % MODE_MAX;
 				}
 				currentState = CheckStateSwitch(currentKey, currentState);
 				lastKeyState = currentKey;
 
 				switch(currentMode) {
-				case MODE_TIME:  ShowTime(); break;
-				case MODE_DATE:  ShowDate(); break;
-				case MODE_ALARM: ShowAlarm(); break;
-				case MODE_ALARM2: ShowAlarm2(); break;
+					case MODE_TIME:  ShowTime(); break;
+					case MODE_DATE:  ShowDate(); break;
+					case MODE_ALARM: ShowAlarm(); break;
+					case MODE_ALARM2: ShowAlarm2(); break;
 				}
 
 				break;
@@ -469,12 +482,12 @@ int main(void){
 						if(!(currentKey & 0x02) && (lastKeyState & 0x02)) {
 							switch (bit_cnt){
 								case 0:
-									date_blink_start_bit += 4;
-									date_blink_end_bit += 2;
+									date_blink_start_bit = 4;
+									date_blink_end_bit  = 5;
 									break;
 								case 1:
-									date_blink_start_bit += 2;
-									date_blink_end_bit += 2;
+									date_blink_start_bit = 6;
+									date_blink_end_bit = 7;
 									break;
 								case 2:
 									date_blink_start_bit = 0;
@@ -501,8 +514,22 @@ int main(void){
 					
 					case MODE_TIME:
 						if(!(currentKey & 0x02) && (lastKeyState & 0x02)) {
-							blink_start_bit = (blink_start_bit+2)%6;
-							blink_end_bit = (blink_end_bit+2)%6;
+							// blink_start_bit = (blink_start_bit+2)%6;
+							// blink_end_bit = (blink_end_bit+2)%6;
+							switch (bit_cnt){
+								case 0:
+									blink_start_bit = 2;
+									blink_end_bit = 3;
+									break;
+								case 1:
+									blink_start_bit = 4;
+									blink_end_bit = 5;
+									break;
+								case 2:
+									blink_start_bit = 0;
+									blink_end_bit = 1;
+									break;
+							}							
 							bit_cnt = (bit_cnt+1)%3;
 						}
 						else if(!(currentKey & 0x08) && (lastKeyState & 0x08)) { // SW4为增加闪烁位的值
@@ -523,8 +550,22 @@ int main(void){
 
 					case MODE_ALARM:
 						if(!(currentKey & 0x02) && (lastKeyState & 0x02)) {
-							blink_start_bit = (blink_start_bit+2)%6;
-							blink_end_bit = (blink_end_bit+2)%6;
+							// blink_start_bit = (blink_start_bit+2)%6;
+							// blink_end_bit = (blink_end_bit+2)%6;
+							switch (bit_cnt){
+								case 0:
+									blink_start_bit = 2;
+									blink_end_bit = 3;
+									break;
+								case 1:
+									blink_start_bit = 4;
+									blink_end_bit = 5;
+									break;
+								case 2:
+									blink_start_bit = 0;
+									blink_end_bit = 1;
+									break;
+							}	
 							bit_cnt = (bit_cnt+1)%3;
 						}
 						else if(!(currentKey & 0x08) && (lastKeyState & 0x08)) { // SW4为增加闪烁位的值
@@ -545,20 +586,34 @@ int main(void){
 
 					case MODE_ALARM2:
 						if(!(currentKey & 0x02) && (lastKeyState & 0x02)) {
-							blink_start_bit = (blink_start_bit+2)%6;
-							blink_end_bit = (blink_end_bit+2)%6;
+							// blink_start_bit = (blink_start_bit+2)%6;
+							// blink_end_bit = (blink_end_bit+2)%6;
+							switch (bit_cnt){
+								case 0:
+									blink_start_bit = 2;
+									blink_end_bit = 3;
+									break;
+								case 1:
+									blink_start_bit = 4;
+									blink_end_bit = 5;
+									break;
+								case 2:
+									blink_start_bit = 0;
+									blink_end_bit = 1;
+									break;
+							}	
 							bit_cnt = (bit_cnt+1)%3;
 						}
 						else if(!(currentKey & 0x08) && (lastKeyState & 0x08)) { // SW4为增加闪烁位的值
 							switch (bit_cnt){
-								case 0: Alarm_buffer2.hour = (Alarm_buffer2.hour+1)%100; break;							
+								case 0: Alarm_buffer2.hour = (Alarm_buffer2.hour+1)%24; break;							
 								case 1: Alarm_buffer2.min = (Alarm_buffer2.min+1)%60; break;
 								case 2: Alarm_buffer2.sec = (Alarm_buffer2.sec+1)%60; break;
 							}
 						}
 						else if(!(currentKey & 0x04) && (lastKeyState & 0x04)) { // SW3为减小闪烁位的值
 							switch (bit_cnt){
-								case 0: Alarm_buffer2.hour--; if(Alarm_buffer2.hour==0xff) Alarm_buffer2.hour=99; break;							
+								case 0: Alarm_buffer2.hour--; if(Alarm_buffer2.hour==0xff) Alarm_buffer2.hour=23; break;							
 								case 1: Alarm_buffer2.min--; if(Alarm_buffer2.min==0xff) Alarm_buffer2.min=59; break;
 								case 2: Alarm_buffer2.sec--; if(Alarm_buffer2.sec==0xff) Alarm_buffer2.sec=59; break;
 							}
@@ -618,8 +673,7 @@ void UART0_ProcessCommands(void) {
     // 检查命令就绪标志
     if(UART0_Rx.cmdReady) {
         // 进入临界区（禁用中断）
-        uint32_t int_state = IntMasterDisable();
-		// UARTStringPut((uint8_t *)"\r\n22222222222222\r\n");        
+        uint32_t int_state = IntMasterDisable();       
         // 复制接收缓冲区到命令缓冲区
         strncpy(UART0_Rx.cmdBuffer, (const char*)UART0_Rx.rxBuffer, SERIAL_LENGTH_MAX);
         
@@ -646,25 +700,29 @@ void ProcessCommand(const char* cmd){
 		if(strncmp(cmd+5, "DATE", 4) == 0){
 			if(strcmp(cmd+9, "YEAR") == 0) {UARTStringPut(Uint16ToString(Date_buffer.year, "%u\r\n"));}
 			else if(strcmp(cmd+9, "MONTH") == 0) {UARTStringPut(Uint8ToString(Date_buffer.mon, "%u\r\n"));}
-			else if(strcmp(cmd+9, "DATE") == 0) {UARTStringPut(Uint8ToString(Date_buffer.day, "%u\r\n"));}
+			else if(strcmp(cmd+9, "DATE") == 0) {UARTStringPut(Uint8ToString(Date_buffer.day, "%u\r\n"));}	
 			else if(strcmp(cmd+9, "YEARMONTH") == 0) {UARTStringPut(Uint16ToString(Date_buffer.year, "%u ")); UARTStringPut(Uint8ToString(Date_buffer.mon, "%u\r\n"));}
 			else if(strcmp(cmd+9, "MONTHDATE") == 0) {UARTStringPut(Uint8ToString(Date_buffer.mon, "%u ")); UARTStringPut(Uint8ToString(Date_buffer.day, "%u\r\n"));}
-			else if(strcmp(cmd+9, "YEARDATE") == 0) {UARTStringPut(Uint16ToString(Date_buffer.year, "%u ")); UARTStringPut(Uint8ToString(Date_buffer.day, "%u\r\n"));}
+			else if(strcmp(cmd+9, "YEARDATE") == 0) {UARTStringPut(Uint16ToString(Date_buffer.year, "%u ")); UARTStringPut(Uint8ToString(Date_buffer.day, "%u\r\n"));}	
 			else if(strcmp(cmd+9, "YEARMONTHDATE") == 0) {UARTStringPut(Uint16ToString(Date_buffer.year, "%u ")); UARTStringPut(Uint8ToString(Date_buffer.mon, "%u ")); UARTStringPut(Uint8ToString(Date_buffer.day, "%u\r\n"));}
 		}
 		else if(strncmp(cmd+5, "TIME", 4) == 0){
-			if(strcmp(cmd+9, "HOUR") == 0) {UARTStringPut(Uint8ToString(Time_buffer.hour, "%u\r\n"));}
-			else if(strncmp(cmd+9, "MIN", 3) == 0 || strncmp(cmd+9, "MINUTE", 6) == 0) {UARTStringPut(Uint8ToString(Time_buffer.min, "%u\r\n"));}
-			else if(strncmp(cmd+9, "SEC", 3) == 0 || strncmp(cmd+9, "SECOND", 6) == 0) {UARTStringPut(Uint8ToString(Time_buffer.sec, "%u\r\n"));}
+			if(strncmp(cmd+9, "HOURMINSEC", 10) == 0 || strncmp(cmd+9, "HOURMINUTESECOND", 16) == 0) {UARTStringPut(Uint8ToString(Time_buffer.hour, "%u ")); UARTStringPut(Uint8ToString(Time_buffer.min, "%u ")); UARTStringPut(Uint8ToString(Time_buffer.sec, "%u\r\n"));}
 			else if(strncmp(cmd+9, "HOURMIN", 7) == 0 || strncmp(cmd+9, "HOURMINUTE", 10) == 0) {UARTStringPut(Uint8ToString(Time_buffer.hour, "%u ")); UARTStringPut(Uint8ToString(Time_buffer.min, "%u\r\n"));}
 			else if(strncmp(cmd+9, "MINSEC", 6) == 0 || strncmp(cmd+9, "MINSECOND", 9) == 0) {UARTStringPut(Uint8ToString(Time_buffer.min, "%u ")); UARTStringPut(Uint8ToString(Time_buffer.sec, "%u\r\n"));}
-			else if(strncmp(cmd+9, "HOURSEC", 7) == 0 || strncmp(cmd+9, "HOURSECOND", 7) == 0) {UARTStringPut(Uint8ToString(Time_buffer.hour, "%u ")); UARTStringPut(Uint8ToString(Time_buffer.sec, "%u\r\n"));}
-			else if(strncmp(cmd+9, "HOURMINSEC", 10) == 0 || strncmp(cmd+9, "HOURMINUTESECOND", 16) == 0) {UARTStringPut(Uint8ToString(Time_buffer.hour, "%u ")); UARTStringPut(Uint8ToString(Time_buffer.min, "%u ")); UARTStringPut(Uint8ToString(Time_buffer.sec, "%u\r\n"));}
+			else if(strncmp(cmd+9, "HOURSEC", 7) == 0 || strncmp(cmd+9, "HOURSECOND", 10) == 0) {UARTStringPut(Uint8ToString(Time_buffer.hour, "%u ")); UARTStringPut(Uint8ToString(Time_buffer.sec, "%u\r\n"));}
+			else if(strcmp(cmd+9, "HOUR") == 0) {UARTStringPut(Uint8ToString(Time_buffer.hour, "%u\r\n"));}
+			else if(strncmp(cmd+9, "MIN", 3) == 0 || strncmp(cmd+9, "MINUTE", 6) == 0) {UARTStringPut(Uint8ToString(Time_buffer.min, "%u\r\n"));}
+			else if(strncmp(cmd+9, "SEC", 3) == 0 || strncmp(cmd+9, "SECOND", 6) == 0) {UARTStringPut(Uint8ToString(Time_buffer.sec, "%u\r\n"));}
 		}
 		else if(strncmp(cmd+5, "ALARM", 5) == 0){
-			UARTStringPut(Uint8ToString(Alarm_buffer.hour, "%u "));
-			UARTStringPut(Uint8ToString(Alarm_buffer.min, "%u "));
-			UARTStringPut(Uint8ToString(Alarm_buffer.sec, "%u\r\n"));
+			UARTStringPut(Uint8ToString(Alarm_buffer2.hour, "%u "));
+			UARTStringPut(Uint8ToString(Alarm_buffer2.min, "%u "));
+			UARTStringPut(Uint8ToString(Alarm_buffer2.sec, "%u\r\n"));
+		}
+		else if(strncmp(cmd+5, "DISPLAY", 7) == 0){
+			if(blank_flag) UARTStringPut((uint8_t *)"OFF\r\n");
+			else UARTStringPut((uint8_t *)"ON\r\n");
 		}
 		else if(strncmp(cmd+5, "FORMAT", 6) == 0){
 			if(reverse_flag) UARTStringPut((uint8_t *)"FROM RIGHT TO LEFT\r\n");
@@ -673,7 +731,17 @@ void ProcessCommand(const char* cmd){
 	}
 
 	else if(strncmp(cmd, "*SET:", 5) == 0){
-		if (currentState != SET_VALUE) UARTStringPut((uint8_t *)"\r\nPress SW2 to switch to SET_VALUE state first!!!\r\n");
+		
+		if(strncmp(cmd+5, "DISPLAY", 7) == 0){
+			if(strcmp(cmd+12, "ON") == 0) blank_flag = false;
+			else if(strcmp(cmd+12, "OFF") == 0) blank_flag = true;
+		}
+		else if(strncmp(cmd+5, "FORMAT", 6) == 0){
+			if(strcmp(cmd+11, "LEFT") == 0) reverse_flag = false;
+			else if(strcmp(cmd+11, "RIGHT") == 0) reverse_flag = true;
+		}
+		
+		else if (currentState != SET_VALUE) UARTStringPut((uint8_t *)"\r\nPress SW2 to switch to SET_VALUE state first!!!\r\n");
 		else{
 			if(strncmp(cmd+5, "DATE", 4) == 0){
 				if (currentMode != MODE_DATE) UARTStringPut((uint8_t *)"\r\nPress SW1 to switch to MODE_DATE mode first!!!\r\n");
@@ -706,18 +774,27 @@ void ProcessCommand(const char* cmd){
 			else if(strncmp(cmd+5, "ALARM", 5) == 0){
 				if (currentMode != MODE_ALARM2) UARTStringPut((uint8_t *)"\r\nPress SW1 to switch to MODE_ALARM2 mode first!!!\r\n");
 				else{
-					if(strncmp(cmd+9, "HOUR", 4) == 0) {Alarm_buffer2.hour = (*(cmd+13)-'0')*10 + (*(cmd+14)-'0')*1;}
-					else if(strncmp(cmd+9, "MIN", 3) == 0) {Alarm_buffer2.min = (*(cmd+12)-'0')*10 + (*(cmd+13)-'0')*1;}
-					else if(strncmp(cmd+9, "SEC", 3) == 0) {Alarm_buffer2.sec = (*(cmd+12)-'0')*10 + (*(cmd+13)-'0')*1;}
+					if(strncmp(cmd+10, "HOUR", 4) == 0) {Alarm_buffer2.hour = (*(cmd+14)-'0')*10 + (*(cmd+15)-'0')*1;}
+					else if(strncmp(cmd+10, "MIN", 3) == 0) {Alarm_buffer2.min = (*(cmd+13)-'0')*10 + (*(cmd+14)-'0')*1;}
+					else if(strncmp(cmd+10, "SEC", 3) == 0) {Alarm_buffer2.sec = (*(cmd+13)-'0')*10 + (*(cmd+12)-'0')*1;}
 					
-					if(strncmp(cmd+9, "HOURMIN", 7) == 0){Alarm_buffer2.hour = (*(cmd+16)-'0')*10 + (*(cmd+17)-'0')*1; Alarm_buffer2.min = (*(cmd+18)-'0')*10 + (*(cmd+19)-'0')*1;}
-					else if(strncmp(cmd+9, "MINSEC", 6) == 0){Alarm_buffer2.min = (*(cmd+15)-'0')*10 + (*(cmd+16)-'0')*1; Alarm_buffer2.sec = (*(cmd+17)-'0')*10 + (*(cmd+18)-'0')*1;}
-					else if(strncmp(cmd+9, "HOURSEC", 7) == 0){Alarm_buffer2.hour = (*(cmd+16)-'0')*10 + (*(cmd+17)-'0')*1; Alarm_buffer2.sec = (*(cmd+18)-'0')*10 + (*(cmd+19)-'0')*1;}
+					if(strncmp(cmd+10, "HOURMIN", 7) == 0){Alarm_buffer2.hour = (*(cmd+17)-'0')*10 + (*(cmd+18)-'0')*1; Alarm_buffer2.min = (*(cmd+19)-'0')*10 + (*(cmd+20)-'0')*1;}
+					else if(strncmp(cmd+10, "MINSEC", 6) == 0){Alarm_buffer2.min = (*(cmd+16)-'0')*10 + (*(cmd+17)-'0')*1; Alarm_buffer2.sec = (*(cmd+18)-'0')*10 + (*(cmd+19)-'0')*1;}
+					else if(strncmp(cmd+10, "HOURSEC", 7) == 0){Alarm_buffer2.hour = (*(cmd+17)-'0')*10 + (*(cmd+18)-'0')*1; Alarm_buffer2.sec = (*(cmd+19)-'0')*10 + (*(cmd+20)-'0')*1;}
 					
-					if(strncmp(cmd+9, "HOURMINSEC", 10) == 0){Alarm_buffer2.hour = (*(cmd+19)-'0')*10 + (*(cmd+20)-'0')*1; Alarm_buffer2.min = (*(cmd+21)-'0')*10 + (*(cmd+22)-'0')*1; Alarm_buffer2.sec = (*(cmd+23)-'0')*10 + (*(cmd+24)-'0')*1;}
+					if(strncmp(cmd+10, "HOURMINSEC", 10) == 0){Alarm_buffer2.hour = (*(cmd+20)-'0')*10 + (*(cmd+21)-'0')*1; Alarm_buffer2.min = (*(cmd+22)-'0')*10 + (*(cmd+23)-'0')*1; Alarm_buffer2.sec = (*(cmd+24)-'0')*10 + (*(cmd+25)-'0')*1;}
 				}
 			}
 		}
+	}
+
+	else if(strncmp(cmd, "*RST", 4) == 0){
+		Time_buffer = Time_RST_buffer;
+		Date_buffer = Date_RST_buffer;
+		Alarm_buffer = Alarm_RST_buffer;
+		Alarm_buffer2 = Alarm_RST_buffer2;
+		reverse_flag = false;
+		blank_flag = false;
 	}
 }
 
@@ -747,50 +824,105 @@ uint8_t ReadKey(){
 }
 
 void Load_time(uint8_t *target, _time source_buffer){
-	target[0] = source_buffer.hour / 10;
-	target[1] = source_buffer.hour % 10;
-	target[2] = source_buffer.min / 10;
-	target[3] = source_buffer.min % 10;
-	target[4] = source_buffer.sec / 10;
-	target[5] = source_buffer.sec % 10;
-	target[6] = target[7] = 36;
+	if(!reverse_flag){
+		target[0] = source_buffer.hour / 10;
+		target[1] = source_buffer.hour % 10;
+		target[2] = source_buffer.min / 10;
+		target[3] = source_buffer.min % 10;
+		target[4] = source_buffer.sec / 10;
+		target[5] = source_buffer.sec % 10;
+		target[6] = target[7] = 36;
+	}
+	else{
+		target[7] = source_buffer.hour / 10;
+		target[6] = source_buffer.hour % 10;
+		target[5] = source_buffer.min / 10;
+		target[4] = source_buffer.min % 10;
+		target[3] = source_buffer.sec / 10;
+		target[2] = source_buffer.sec % 10;
+		target[0] = target[1] = 36;
+	}
 }
 
 void ShowTime(){
-	Load_time(Buffer, Time_buffer);
-	Buffer[1] += 37; // 加小数点
-	Buffer[3] += 37; // 加小数点
+	if(!blank_flag){
+		Load_time(Buffer, Time_buffer);
+		if(!reverse_flag){
+			Buffer[1] += 37; // 加小数点
+			Buffer[3] += 37; // 加小数点
+		}
+		else{
+			Buffer[3] += 37; // 加小数点
+			Buffer[5] += 37; // 加小数点
+		}
+	}
 }
 
 void ShowAlarm(){
-	Load_time(Buffer, Alarm_buffer);
-	Buffer[1] += 37; // 加小数点
-	Buffer[3] += 37; // 加小数点
+	if(!blank_flag){
+		Load_time(Buffer, Alarm_buffer);
+		if(!reverse_flag){
+			Buffer[1] += 37; // 加小数点
+			Buffer[3] += 37; // 加小数点
+		}
+		else{
+			Buffer[3] += 37; // 加小数点
+			Buffer[5] += 37; // 加小数点
+		}
+	}
 }
 
 void ShowAlarm2(){
-	Load_time(Buffer, Alarm_buffer2);
-	Buffer[1] += 37; // 加小数点
-	Buffer[3] += 37; // 加小数点
+	if(!blank_flag){
+		Load_time(Buffer, Alarm_buffer2);
+		if(!reverse_flag){
+			Buffer[1] += 37; // 加小数点
+			Buffer[3] += 37; // 加小数点
+		}
+		else{
+			Buffer[3] += 37; // 加小数点
+			Buffer[5] += 37; // 加小数点
+		}
+	}
 }
 
 void Load_date(uint8_t *target, _date source_buffer){
 	uint16_t tmp_year = source_buffer.year;
 	int i;
-	for(i=3; i>=0; i--){
-		target[i] = tmp_year % 10;
-		tmp_year /= 10;
+	if(!reverse_flag){
+		for(i=3; i>=0; i--){
+			target[i] = tmp_year % 10;
+			tmp_year /= 10;
+		}
+		target[4] = source_buffer.mon / 10;
+		target[5] = source_buffer.mon % 10;
+		target[6] = source_buffer.day / 10;
+		target[7] = source_buffer.day % 10;
 	}
-	target[4] = source_buffer.mon / 10;
-	target[5] = source_buffer.mon % 10;
-	target[6] = source_buffer.day / 10;
-	target[7] = source_buffer.day % 10;
+	else{
+		for(i=4; i<=7; i++){
+			target[i] = tmp_year % 10;
+			tmp_year /= 10;
+		}
+		target[2] = source_buffer.mon / 10;
+		target[3] = source_buffer.mon % 10;
+		target[0] = source_buffer.day / 10;
+		target[1] = source_buffer.day % 10;
+	}
 }
 
 void ShowDate(){
-	Load_date(Buffer, Date_buffer);
-	Buffer[3] += 37; // 加小数点
-	Buffer[5] += 37; // 加小数点
+	if(!blank_flag){
+		Load_date(Buffer, Date_buffer);
+		if(!reverse_flag){
+			Buffer[3] += 37; // 加小数点
+			Buffer[5] += 37; // 加小数点
+		}
+		else{
+			Buffer[1] += 37; // 加小数点
+			Buffer[3] += 37; // 加小数点
+		}
+	}
 }
 
 void Delay(uint32_t value)
