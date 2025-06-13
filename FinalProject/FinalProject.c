@@ -2,6 +2,7 @@
 #include <stdbool.h>
 #include <string.h>
 #include <stdio.h>
+#include <math.h>
 #include "hw_memmap.h"
 #include "debug.h"
 #include "gpio.h"
@@ -16,8 +17,10 @@
 #include "interrupt.h"
 #include "hw_nvic.h"
 #include "hw_pwm.h"
+#include "hw_adc.h"
 #include "driverlib/pin_map.h"
 #include "driverlib/pwm.h"
+#include "driverlib/adc.h"
 
 //*****************************************************************************
 //
@@ -104,6 +107,7 @@ void 		S800_GPIO_Init(void);
 void		S800_I2C0_Init(void);
 void		S800_UART_Init(void);
 void        Power_On_Init(void);
+void		ADC_Init(void);
 void  		Beep_Init(void);
 void        Buzzer_On(void);
 void        Buzzer_Off(void);
@@ -116,6 +120,7 @@ void        ShowAlarm(void);
 void        ShowAlarm2(void);
 void        Load_date(uint8_t *, _date);
 void        Load_time(uint8_t *, _time);
+void		get_temperature(void);
 
 void 		UARTStringPut(uint8_t *);
 void 		UARTStringPutNonBlocking(const char *);
@@ -124,6 +129,7 @@ void		ProcessCommand(const char* cmd);
 void 		RemoveSpaces(char *buffer);
 uint8_t* 	Uint8ToString(uint8_t value, const char* suffix);
 uint8_t* 	Uint16ToString(uint16_t value, const char* suffix);
+uint8_t* 	FloatToString(float value);
 
 // 全局变量
 volatile uint8_t result; // 接收I2C0_WriteByte函数返回的错误类型，0代表无错
@@ -182,6 +188,11 @@ uint8_t txBuffer[SERIAL_LENGTH_MAX];
 // "左右反转"和“串口控制是否显示”使用的全区变量
 bool reverse_flag = false; // false为从左向右显示,true为从右向左显示
 bool blank_flag = false; // false代表正常显示,true代表熄灭显示,但实际上在正常运作
+
+// "读取芯片温度"使用的全局变量
+uint32_t ui32ADCValue;
+float vRefDiff = 3.3F - 0.0F;
+float fTemperature = 0;
 
 void SysTickIntHandler(void){
 	switch (currentState){
@@ -396,6 +407,7 @@ int main(void){
 	S800_GPIO_Init();
 	S800_I2C0_Init();
 	S800_UART_Init();
+	ADC_Init();
 	Beep_Init();
 	Power_On_Init();
 
@@ -728,6 +740,11 @@ void ProcessCommand(const char* cmd){
 			if(reverse_flag) UARTStringPut((uint8_t *)"FROM RIGHT TO LEFT\r\n");
 			else UARTStringPut((uint8_t *)"FROM LEFT TO RIGHT\r\n");
 		}
+		else if(strncmp(cmd+5, "TEMP", 4) == 0){
+			get_temperature();
+			UARTStringPut(FloatToString(fTemperature));
+			UARTStringPut(" C\r\n");
+		}
 	}
 
 	else if(strncmp(cmd, "*SET:", 5) == 0){
@@ -969,6 +986,25 @@ void Beep_Init(void){
     PWMGenEnable(BEEP_PWM_BASE, BEEP_PWM_GEN);
 }
 
+void ADC_Init(void){
+	SysCtlPeripheralEnable(SYSCTL_PERIPH_ADC0);
+    while(!SysCtlPeripheralReady(SYSCTL_PERIPH_ADC0)) {} // 等待 ADC0 就绪
+    ADCSequenceConfigure(ADC0_BASE, 3, ADC_TRIGGER_PROCESSOR, 0);
+    ADCSequenceStepConfigure(ADC0_BASE, 3, 0, ADC_CTL_CH0 | ADC_CTL_END | ADC_CTL_IE);
+	HWREG(ADC0_BASE + ADC_O_SSTSH3) = (0x4 << ADC_SSTSH3_TSH0_S); // TSH0 = 0x4 (16 cycles)
+    ADCSequenceEnable(ADC0_BASE, 3);
+}
+
+void get_temperature(void){
+    ADCIntClear(ADC0_BASE, 3);               // 清除中断标志
+    ADCProcessorTrigger(ADC0_BASE, 3);       // 手动触发采样
+
+    while(!ADCIntStatus(ADC0_BASE, 3, false)) {}
+    ADCSequenceDataGet(ADC0_BASE, 3, &ui32ADCValue); // 读取 ADC 值
+
+	fTemperature = (147.5F - (75.0F * vRefDiff * ui32ADCValue) / 4096.0F);
+}
+
 void Power_On_Init(void){
 	uint8_t ID[] = {4,2,9,1,0,0,1,6};
 	uint8_t Name[] = {'w'-'a'+10,'z'-'a'+10,'h'-'a'+10,36,36,36,36,36};
@@ -1063,6 +1099,10 @@ uint8_t* Uint8ToString(uint8_t value, const char* suffix) {
 }
 uint8_t* Uint16ToString(uint16_t value, const char* suffix) {
     sprintf((char*)txBuffer, suffix, value);
+    return txBuffer;
+}
+uint8_t* FloatToString(float value) {
+    sprintf((char*)txBuffer, "%.4f", value);
     return txBuffer;
 }
 

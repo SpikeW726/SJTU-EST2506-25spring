@@ -3,6 +3,7 @@
 .\objects\finalproject.o: C:\Keil_v5.28\ARM\ARMCC\Bin\..\include\stdbool.h
 .\objects\finalproject.o: C:\Keil_v5.28\ARM\ARMCC\Bin\..\include\string.h
 .\objects\finalproject.o: C:\Keil_v5.28\ARM\ARMCC\Bin\..\include\stdio.h
+.\objects\finalproject.o: C:\Keil_v5.28\ARM\ARMCC\Bin\..\include\math.h
 .\objects\finalproject.o: .\inc\hw_memmap.h
 .\objects\finalproject.o: .\driverlib\debug.h
 .\objects\finalproject.o: .\driverlib\gpio.h
@@ -17,4 +18,6 @@
 .\objects\finalproject.o: .\driverlib\interrupt.h
 .\objects\finalproject.o: .\inc\hw_nvic.h
 .\objects\finalproject.o: .\inc\hw_pwm.h
+.\objects\finalproject.o: .\inc\hw_adc.h
 .\objects\finalproject.o: driverlib/pwm.h
+.\objects\finalproject.o: driverlib/adc.h
