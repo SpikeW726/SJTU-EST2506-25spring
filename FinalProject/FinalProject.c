@@ -141,6 +141,11 @@ uint8_t num_seg7[] = {0x3f,0x06,0x5b,0x4f,0x66,0x6d,0x7d,0x07,0x7f,0x6f,
 					  0x75,0x38,0x37,0x54,0x5c,0x73,0x67,0x31,0x49,0x78,
 					  0x3e,0x1c,0x7e,0x64,0x6e,0x59,0x0,
 					  0x3f|0x80,0x06|0x80,0x5b|0x80,0x4f|0x80,0x66|0x80,0x6d|0x80,0x7d|0x80,0x07|0x80,0x7f|0x80,0x6f|0x80}; // 0-9+a-z,第36位为熄灭,最后一行是带小数点的1-9
+uint8_t mirror_num_seg7[] = {0x3F, 0x60, 0x6D, 0x78, 0x74, 0x37, 0x3F, 0x78, 0x7C, 0x7E,
+							 0x7C, 0x3F, 0x2B, 0x6D, 0x2F, 0x27, 0x67, 0x6E, 0x0F, 0x0E, 
+							 0x75, 0x38, 0x37, 0x54, 0x5C, 0x73, 0x67, 0x31, 0x49, 0x78, 
+							 0x3E, 0x1C, 0x7E, 0x64, 0x6E, 0x59, 0x0,
+							 0x3F|0x80, 0x60|0x80, 0x6D|0x80, 0x78|0x80, 0x74|0x80, 0x37|0x80, 0x3F|0x80, 0x78|0x80, 0x7C|0x80, 0x7E|0x80};
 
 // 公用的全局变量
 DisplayMode currentMode = MODE_DATE;
@@ -321,7 +326,7 @@ void SysTickIntHandler(void){
 						}
 						if(time_min_carry){
 							time_min_carry = false; 
-							Time_buffer.hour = (Time_buffer.hour+1)%100;
+							Time_buffer.hour = (Time_buffer.hour+1)%24;
 						}
 						ShowTime();
 						break;
@@ -696,8 +701,8 @@ void UART0_ProcessCommands(void) {
         if(!int_state) IntMasterEnable();
         
         // 处理命令（在中断外执行）
-		UARTStringPut((uint8_t *)UART0_Rx.cmdBuffer);
-		UARTStringPut((uint8_t *)"\r\n");
+		// UARTStringPut((uint8_t *)UART0_Rx.cmdBuffer);
+		// UARTStringPut((uint8_t *)"\r\n");
 
 		RemoveSpaces(UART0_Rx.cmdBuffer);
         ProcessCommand(UART0_Rx.cmdBuffer);
@@ -705,8 +710,8 @@ void UART0_ProcessCommands(void) {
 }
 
 void ProcessCommand(const char* cmd){
-	UARTStringPut((uint8_t *)cmd);
-	UARTStringPut((uint8_t *)"\r\n");
+	// UARTStringPut((uint8_t *)cmd);
+	// UARTStringPut((uint8_t *)"\r\n");
 
 	if(strncmp(cmd, "*GET:", 5) == 0){
 		if(strncmp(cmd+5, "DATE", 4) == 0){
@@ -757,6 +762,20 @@ void ProcessCommand(const char* cmd){
 			if(strcmp(cmd+11, "LEFT") == 0) reverse_flag = false;
 			else if(strcmp(cmd+11, "RIGHT") == 0) reverse_flag = true;
 		}
+		else if(strncmp(cmd+5, "ALARM", 5) == 0){
+				// if (currentMode != MODE_ALARM2) UARTStringPut((uint8_t *)"\r\nPress SW1 to switch to MODE_ALARM2 mode first!!!\r\n");
+				// else{
+					if(strncmp(cmd+10, "HOUR", 4) == 0) {Alarm_buffer2.hour = (*(cmd+14)-'0')*10 + (*(cmd+15)-'0')*1;}
+					else if(strncmp(cmd+10, "MIN", 3) == 0) {Alarm_buffer2.min = (*(cmd+13)-'0')*10 + (*(cmd+14)-'0')*1;}
+					else if(strncmp(cmd+10, "SEC", 3) == 0) {Alarm_buffer2.sec = (*(cmd+13)-'0')*10 + (*(cmd+12)-'0')*1;}
+					
+					if(strncmp(cmd+10, "HOURMIN", 7) == 0){Alarm_buffer2.hour = (*(cmd+17)-'0')*10 + (*(cmd+18)-'0')*1; Alarm_buffer2.min = (*(cmd+19)-'0')*10 + (*(cmd+20)-'0')*1;}
+					else if(strncmp(cmd+10, "MINSEC", 6) == 0){Alarm_buffer2.min = (*(cmd+16)-'0')*10 + (*(cmd+17)-'0')*1; Alarm_buffer2.sec = (*(cmd+18)-'0')*10 + (*(cmd+19)-'0')*1;}
+					else if(strncmp(cmd+10, "HOURSEC", 7) == 0){Alarm_buffer2.hour = (*(cmd+17)-'0')*10 + (*(cmd+18)-'0')*1; Alarm_buffer2.sec = (*(cmd+19)-'0')*10 + (*(cmd+20)-'0')*1;}
+					
+					if(strncmp(cmd+10, "HOURMINSEC", 10) == 0){Alarm_buffer2.hour = (*(cmd+20)-'0')*10 + (*(cmd+21)-'0')*1; Alarm_buffer2.min = (*(cmd+22)-'0')*10 + (*(cmd+23)-'0')*1; Alarm_buffer2.sec = (*(cmd+24)-'0')*10 + (*(cmd+25)-'0')*1;}
+				// }
+			}
 		
 		else if (currentState != SET_VALUE) UARTStringPut((uint8_t *)"\r\nPress SW2 to switch to SET_VALUE state first!!!\r\n");
 		else{
@@ -788,24 +807,12 @@ void ProcessCommand(const char* cmd){
 					if(strncmp(cmd+9, "HOURMINSEC", 10) == 0){Time_buffer.hour = (*(cmd+19)-'0')*10 + (*(cmd+20)-'0')*1; Time_buffer.min = (*(cmd+21)-'0')*10 + (*(cmd+22)-'0')*1; Time_buffer.sec = (*(cmd+23)-'0')*10 + (*(cmd+24)-'0')*1;}
 				}
 			}
-			else if(strncmp(cmd+5, "ALARM", 5) == 0){
-				if (currentMode != MODE_ALARM2) UARTStringPut((uint8_t *)"\r\nPress SW1 to switch to MODE_ALARM2 mode first!!!\r\n");
-				else{
-					if(strncmp(cmd+10, "HOUR", 4) == 0) {Alarm_buffer2.hour = (*(cmd+14)-'0')*10 + (*(cmd+15)-'0')*1;}
-					else if(strncmp(cmd+10, "MIN", 3) == 0) {Alarm_buffer2.min = (*(cmd+13)-'0')*10 + (*(cmd+14)-'0')*1;}
-					else if(strncmp(cmd+10, "SEC", 3) == 0) {Alarm_buffer2.sec = (*(cmd+13)-'0')*10 + (*(cmd+12)-'0')*1;}
-					
-					if(strncmp(cmd+10, "HOURMIN", 7) == 0){Alarm_buffer2.hour = (*(cmd+17)-'0')*10 + (*(cmd+18)-'0')*1; Alarm_buffer2.min = (*(cmd+19)-'0')*10 + (*(cmd+20)-'0')*1;}
-					else if(strncmp(cmd+10, "MINSEC", 6) == 0){Alarm_buffer2.min = (*(cmd+16)-'0')*10 + (*(cmd+17)-'0')*1; Alarm_buffer2.sec = (*(cmd+18)-'0')*10 + (*(cmd+19)-'0')*1;}
-					else if(strncmp(cmd+10, "HOURSEC", 7) == 0){Alarm_buffer2.hour = (*(cmd+17)-'0')*10 + (*(cmd+18)-'0')*1; Alarm_buffer2.sec = (*(cmd+19)-'0')*10 + (*(cmd+20)-'0')*1;}
-					
-					if(strncmp(cmd+10, "HOURMINSEC", 10) == 0){Alarm_buffer2.hour = (*(cmd+20)-'0')*10 + (*(cmd+21)-'0')*1; Alarm_buffer2.min = (*(cmd+22)-'0')*10 + (*(cmd+23)-'0')*1; Alarm_buffer2.sec = (*(cmd+24)-'0')*10 + (*(cmd+25)-'0')*1;}
-				}
-			}
+			
 		}
 	}
 
 	else if(strncmp(cmd, "*RST", 4) == 0){
+		Power_On_Init();
 		Time_buffer = Time_RST_buffer;
 		Date_buffer = Date_RST_buffer;
 		Alarm_buffer = Alarm_RST_buffer;
@@ -823,7 +830,7 @@ void RemoveSpaces(char *buffer) {
 
     while (*read != '\0') {
         if (*read != ' ') {
-			if(*read > 'a' && *read < 'z'){
+			if(*read >= 'a' && *read <= 'z'){
 				*write = *read + 'A' - 'a';
 				write++; read++;
 			}
@@ -921,10 +928,10 @@ void Load_date(uint8_t *target, _date source_buffer){
 			target[i] = tmp_year % 10;
 			tmp_year /= 10;
 		}
-		target[2] = source_buffer.mon / 10;
-		target[3] = source_buffer.mon % 10;
-		target[0] = source_buffer.day / 10;
-		target[1] = source_buffer.day % 10;
+		target[2] = source_buffer.mon % 10;
+		target[3] = source_buffer.mon / 10;
+		target[0] = source_buffer.day % 10;
+		target[1] = source_buffer.day / 10;
 	}
 }
 

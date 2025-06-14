@@ -53,14 +53,15 @@ Section Cross References
     finalproject.o(i.Power_On_Init) refers to finalproject.o(i.Blank) for Blank
     finalproject.o(i.Power_On_Init) refers to finalproject.o(i.Delay) for Delay
     finalproject.o(i.Power_On_Init) refers to finalproject.o(.data) for Blank_buffer
-    finalproject.o(i.ProcessCommand) refers to finalproject.o(i.UARTStringPut) for UARTStringPut
     finalproject.o(i.ProcessCommand) refers to strncmp.o(.text) for strncmp
     finalproject.o(i.ProcessCommand) refers to strcmpv7m.o(.text) for strcmp
     finalproject.o(i.ProcessCommand) refers to finalproject.o(i.Uint16ToString) for Uint16ToString
+    finalproject.o(i.ProcessCommand) refers to finalproject.o(i.UARTStringPut) for UARTStringPut
     finalproject.o(i.ProcessCommand) refers to finalproject.o(i.Uint8ToString) for Uint8ToString
     finalproject.o(i.ProcessCommand) refers to finalproject.o(i.get_temperature) for get_temperature
     finalproject.o(i.ProcessCommand) refers to finalproject.o(i.FloatToString) for FloatToString
     finalproject.o(i.ProcessCommand) refers to finalproject.o(.data) for Date_buffer
+    finalproject.o(i.ProcessCommand) refers to finalproject.o(i.Power_On_Init) for Power_On_Init
     finalproject.o(i.ReadKey) refers to finalproject.o(i.I2C0_ReadByte) for I2C0_ReadByte
     finalproject.o(i.ReadKey) refers to finalproject.o(.data) for result
     finalproject.o(i.S800_GPIO_Init) refers to sysctl.o(i.SysCtlPeripheralEnable) for SysCtlPeripheralEnable
@@ -110,7 +111,6 @@ Section Cross References
     finalproject.o(i.UART0_ProcessCommands) refers to interrupt.o(i.IntMasterDisable) for IntMasterDisable
     finalproject.o(i.UART0_ProcessCommands) refers to strncpy.o(.text) for strncpy
     finalproject.o(i.UART0_ProcessCommands) refers to interrupt.o(i.IntMasterEnable) for IntMasterEnable
-    finalproject.o(i.UART0_ProcessCommands) refers to finalproject.o(i.UARTStringPut) for UARTStringPut
     finalproject.o(i.UART0_ProcessCommands) refers to finalproject.o(i.RemoveSpaces) for RemoveSpaces
     finalproject.o(i.UART0_ProcessCommands) refers to finalproject.o(i.ProcessCommand) for ProcessCommand
     finalproject.o(i.UART0_ProcessCommands) refers to finalproject.o(.bss) for UART0_Rx
@@ -1145,101 +1145,101 @@ Image Symbol Table
     i.PWMPulseWidthSet                       0x00002666   Section        0  pwm.o(i.PWMPulseWidthSet)
     i.Power_On_Init                          0x00002688   Section        0  finalproject.o(i.Power_On_Init)
     i.ProcessCommand                         0x00002734   Section        0  finalproject.o(i.ProcessCommand)
-    i.ReadKey                                0x00003354   Section        0  finalproject.o(i.ReadKey)
-    i.RemoveSpaces                           0x0000336c   Section        0  finalproject.o(i.RemoveSpaces)
-    i.S800_GPIO_Init                         0x000033b0   Section        0  finalproject.o(i.S800_GPIO_Init)
-    i.S800_I2C0_Init                         0x00003404   Section        0  finalproject.o(i.S800_I2C0_Init)
-    i.S800_UART_Init                         0x0000349c   Section        0  finalproject.o(i.S800_UART_Init)
-    i.Show                                   0x0000350c   Section        0  finalproject.o(i.Show)
-    i.ShowAlarm                              0x00003560   Section        0  finalproject.o(i.ShowAlarm)
-    i.ShowAlarm2                             0x000035b4   Section        0  finalproject.o(i.ShowAlarm2)
-    i.ShowDate                               0x00003608   Section        0  finalproject.o(i.ShowDate)
-    i.ShowTime                               0x0000365c   Section        0  finalproject.o(i.ShowTime)
-    i.SysCtlClockFreqSet                     0x000036b8   Section        0  sysctl.o(i.SysCtlClockFreqSet)
-    i.SysCtlClockGet                         0x000039a4   Section        0  sysctl.o(i.SysCtlClockGet)
-    i.SysCtlPeripheralEnable                 0x00003af8   Section        0  sysctl.o(i.SysCtlPeripheralEnable)
-    i.SysCtlPeripheralReady                  0x00003b20   Section        0  sysctl.o(i.SysCtlPeripheralReady)
-    i.SysTickEnable                          0x00003b4c   Section        0  systick.o(i.SysTickEnable)
-    i.SysTickIntEnable                       0x00003b5a   Section        0  systick.o(i.SysTickIntEnable)
-    i.SysTickIntHandler                      0x00003b68   Section        0  finalproject.o(i.SysTickIntHandler)
-    i.SysTickPeriodSet                       0x00003fcc   Section        0  systick.o(i.SysTickPeriodSet)
-    i.SystemInit                             0x00003fd8   Section        0  system_tm4c129.o(i.SystemInit)
-    i.UART0_Handler                          0x00003ff8   Section        0  finalproject.o(i.UART0_Handler)
-    i.UART0_ProcessCommands                  0x000040a0   Section        0  finalproject.o(i.UART0_ProcessCommands)
-    i.UARTCharGetNonBlocking                 0x000040f4   Section        0  uart.o(i.UARTCharGetNonBlocking)
-    i.UARTCharPut                            0x00004104   Section        0  uart.o(i.UARTCharPut)
-    i.UARTCharsAvail                         0x00004110   Section        0  uart.o(i.UARTCharsAvail)
-    i.UARTConfigSetExpClk                    0x0000411a   Section        0  uart.o(i.UARTConfigSetExpClk)
-    i.UARTIntClear                           0x00004188   Section        0  uart.o(i.UARTIntClear)
-    i.UARTIntEnable                          0x0000418c   Section        0  uart.o(i.UARTIntEnable)
-    i.UARTIntStatus                          0x00004194   Section        0  uart.o(i.UARTIntStatus)
-    i.UARTStringPut                          0x000041a0   Section        0  finalproject.o(i.UARTStringPut)
-    i.Uint16ToString                         0x000041bc   Section        0  finalproject.o(i.Uint16ToString)
-    i.Uint8ToString                          0x000041d4   Section        0  finalproject.o(i.Uint8ToString)
-    i.__ARM_fpclassify                       0x000041ec   Section        0  fpclassify.o(i.__ARM_fpclassify)
-    i._is_digit                              0x0000421c   Section        0  __printf_wp.o(i._is_digit)
-    i.get_temperature                        0x0000422c   Section        0  finalproject.o(i.get_temperature)
-    i.main                                   0x000042b0   Section        0  finalproject.o(i.main)
-    locale$$code                             0x00004ad0   Section       44  lc_numeric_c.o(locale$$code)
-    locale$$code                             0x00004afc   Section       44  lc_ctype_c.o(locale$$code)
-    x$fpl$dretinf                            0x00004b28   Section       12  dretinf.o(x$fpl$dretinf)
-    $v0                                      0x00004b28   Number         0  dretinf.o(x$fpl$dretinf)
-    x$fpl$f2d                                0x00004b34   Section       86  f2d.o(x$fpl$f2d)
-    $v0                                      0x00004b34   Number         0  f2d.o(x$fpl$f2d)
-    x$fpl$fnaninf                            0x00004b8a   Section      140  fnaninf.o(x$fpl$fnaninf)
-    $v0                                      0x00004b8a   Number         0  fnaninf.o(x$fpl$fnaninf)
-    x$fpl$fpinit                             0x00004c16   Section       10  fpinit.o(x$fpl$fpinit)
-    $v0                                      0x00004c16   Number         0  fpinit.o(x$fpl$fpinit)
-    x$fpl$printf1                            0x00004c20   Section        4  printf1.o(x$fpl$printf1)
-    $v0                                      0x00004c20   Number         0  printf1.o(x$fpl$printf1)
-    .constdata                               0x00004c24   Section      552  gpio.o(.constdata)
-    x$fpl$usenofp                            0x00004c24   Section        0  usenofp.o(x$fpl$usenofp)
-    g_ppui32GPIOIntMapBlizzard               0x00004c24   Data         192  gpio.o(.constdata)
-    g_ppui32GPIOIntMapSnowflake              0x00004ce4   Data         216  gpio.o(.constdata)
-    g_pui32GPIOBaseAddrs                     0x00004dbc   Data         144  gpio.o(.constdata)
-    .constdata                               0x00004e4c   Section      268  interrupt.o(.constdata)
-    g_pui32Priority                          0x00004e4c   Data          32  interrupt.o(.constdata)
-    g_pui32Regs                              0x00004e6c   Data         156  interrupt.o(.constdata)
-    g_pui32EnRegs                            0x00004f08   Data          20  interrupt.o(.constdata)
-    g_pui32Dii16Regs                         0x00004f1c   Data          20  interrupt.o(.constdata)
-    g_pui32PendRegs                          0x00004f30   Data          20  interrupt.o(.constdata)
-    g_pui32UnpendRegs                        0x00004f44   Data          20  interrupt.o(.constdata)
-    .constdata                               0x00004f58   Section      596  sysctl.o(.constdata)
-    g_pui32VCOFrequencies                    0x00004f58   Data           8  sysctl.o(.constdata)
-    g_pui32Xtals                             0x00004f60   Data         108  sysctl.o(.constdata)
-    g_pppui32XTALtoVCO                       0x00004fcc   Data         432  sysctl.o(.constdata)
-    g_sXTALtoMEMTIM                          0x0000517c   Data          48  sysctl.o(.constdata)
-    .constdata                               0x000051ac   Section        8  _printf_wctomb.o(.constdata)
-    initial_mbstate                          0x000051ac   Data           8  _printf_wctomb.o(.constdata)
-    .constdata                               0x000051b4   Section       40  _printf_hex_int.o(.constdata)
-    uc_hextab                                0x000051b4   Data          20  _printf_hex_int.o(.constdata)
-    lc_hextab                                0x000051c8   Data          20  _printf_hex_int.o(.constdata)
-    .constdata                               0x000051dc   Section       17  __printf_flags_ss_wp.o(.constdata)
-    maptable                                 0x000051dc   Data          17  __printf_flags_ss_wp.o(.constdata)
-    .constdata                               0x000051f0   Section      148  bigflt0.o(.constdata)
-    tenpwrs_x                                0x000051f0   Data          60  bigflt0.o(.constdata)
-    tenpwrs_i                                0x0000522c   Data          64  bigflt0.o(.constdata)
-    locale$$data                             0x000052a4   Section       28  lc_numeric_c.o(locale$$data)
-    __lcnum_c_name                           0x000052a8   Data           2  lc_numeric_c.o(locale$$data)
-    __lcnum_c_start                          0x000052b0   Data           0  lc_numeric_c.o(locale$$data)
-    __lcnum_c_point                          0x000052bc   Data           0  lc_numeric_c.o(locale$$data)
-    __lcnum_c_thousands                      0x000052be   Data           0  lc_numeric_c.o(locale$$data)
-    __lcnum_c_grouping                       0x000052bf   Data           0  lc_numeric_c.o(locale$$data)
-    locale$$data                             0x000052c0   Section      272  lc_ctype_c.o(locale$$data)
-    __lcnum_c_end                            0x000052c0   Data           0  lc_numeric_c.o(locale$$data)
-    __lcctype_c_name                         0x000052c4   Data           2  lc_ctype_c.o(locale$$data)
-    __lcctype_c_start                        0x000052cc   Data           0  lc_ctype_c.o(locale$$data)
-    __lcctype_c_end                          0x000053d0   Data           0  lc_ctype_c.o(locale$$data)
-    .data                                    0x20000000   Section      161  finalproject.o(.data)
-    is_show                                  0x200000a0   Data           1  finalproject.o(.data)
-    .data                                    0x200000a4   Section        4  system_tm4c129.o(.data)
-    .bss                                     0x200000a8   Section      404  finalproject.o(.bss)
-    .bss                                     0x2000023c   Section       96  libspace.o(.bss)
-    HEAP                                     0x200002a0   Section        0  startup_tm4c129.o(HEAP)
-    STACK                                    0x200002a0   Section     1024  startup_tm4c129.o(STACK)
-    Heap_Mem                                 0x200002a0   Data           0  startup_tm4c129.o(HEAP)
-    Stack_Mem                                0x200002a0   Data        1024  startup_tm4c129.o(STACK)
-    __initial_sp                             0x200006a0   Data           0  startup_tm4c129.o(STACK)
+    i.ReadKey                                0x00003304   Section        0  finalproject.o(i.ReadKey)
+    i.RemoveSpaces                           0x0000331c   Section        0  finalproject.o(i.RemoveSpaces)
+    i.S800_GPIO_Init                         0x00003360   Section        0  finalproject.o(i.S800_GPIO_Init)
+    i.S800_I2C0_Init                         0x000033b4   Section        0  finalproject.o(i.S800_I2C0_Init)
+    i.S800_UART_Init                         0x0000344c   Section        0  finalproject.o(i.S800_UART_Init)
+    i.Show                                   0x000034bc   Section        0  finalproject.o(i.Show)
+    i.ShowAlarm                              0x00003510   Section        0  finalproject.o(i.ShowAlarm)
+    i.ShowAlarm2                             0x00003564   Section        0  finalproject.o(i.ShowAlarm2)
+    i.ShowDate                               0x000035b8   Section        0  finalproject.o(i.ShowDate)
+    i.ShowTime                               0x0000360c   Section        0  finalproject.o(i.ShowTime)
+    i.SysCtlClockFreqSet                     0x00003660   Section        0  sysctl.o(i.SysCtlClockFreqSet)
+    i.SysCtlClockGet                         0x0000394c   Section        0  sysctl.o(i.SysCtlClockGet)
+    i.SysCtlPeripheralEnable                 0x00003aa0   Section        0  sysctl.o(i.SysCtlPeripheralEnable)
+    i.SysCtlPeripheralReady                  0x00003ac8   Section        0  sysctl.o(i.SysCtlPeripheralReady)
+    i.SysTickEnable                          0x00003af4   Section        0  systick.o(i.SysTickEnable)
+    i.SysTickIntEnable                       0x00003b02   Section        0  systick.o(i.SysTickIntEnable)
+    i.SysTickIntHandler                      0x00003b10   Section        0  finalproject.o(i.SysTickIntHandler)
+    i.SysTickPeriodSet                       0x00003f74   Section        0  systick.o(i.SysTickPeriodSet)
+    i.SystemInit                             0x00003f80   Section        0  system_tm4c129.o(i.SystemInit)
+    i.UART0_Handler                          0x00003fa0   Section        0  finalproject.o(i.UART0_Handler)
+    i.UART0_ProcessCommands                  0x00004048   Section        0  finalproject.o(i.UART0_ProcessCommands)
+    i.UARTCharGetNonBlocking                 0x0000408c   Section        0  uart.o(i.UARTCharGetNonBlocking)
+    i.UARTCharPut                            0x0000409c   Section        0  uart.o(i.UARTCharPut)
+    i.UARTCharsAvail                         0x000040a8   Section        0  uart.o(i.UARTCharsAvail)
+    i.UARTConfigSetExpClk                    0x000040b2   Section        0  uart.o(i.UARTConfigSetExpClk)
+    i.UARTIntClear                           0x00004120   Section        0  uart.o(i.UARTIntClear)
+    i.UARTIntEnable                          0x00004124   Section        0  uart.o(i.UARTIntEnable)
+    i.UARTIntStatus                          0x0000412c   Section        0  uart.o(i.UARTIntStatus)
+    i.UARTStringPut                          0x00004138   Section        0  finalproject.o(i.UARTStringPut)
+    i.Uint16ToString                         0x00004154   Section        0  finalproject.o(i.Uint16ToString)
+    i.Uint8ToString                          0x0000416c   Section        0  finalproject.o(i.Uint8ToString)
+    i.__ARM_fpclassify                       0x00004184   Section        0  fpclassify.o(i.__ARM_fpclassify)
+    i._is_digit                              0x000041b4   Section        0  __printf_wp.o(i._is_digit)
+    i.get_temperature                        0x000041c4   Section        0  finalproject.o(i.get_temperature)
+    i.main                                   0x00004240   Section        0  finalproject.o(i.main)
+    locale$$code                             0x00004a48   Section       44  lc_numeric_c.o(locale$$code)
+    locale$$code                             0x00004a74   Section       44  lc_ctype_c.o(locale$$code)
+    x$fpl$dretinf                            0x00004aa0   Section       12  dretinf.o(x$fpl$dretinf)
+    $v0                                      0x00004aa0   Number         0  dretinf.o(x$fpl$dretinf)
+    x$fpl$f2d                                0x00004aac   Section       86  f2d.o(x$fpl$f2d)
+    $v0                                      0x00004aac   Number         0  f2d.o(x$fpl$f2d)
+    x$fpl$fnaninf                            0x00004b02   Section      140  fnaninf.o(x$fpl$fnaninf)
+    $v0                                      0x00004b02   Number         0  fnaninf.o(x$fpl$fnaninf)
+    x$fpl$fpinit                             0x00004b8e   Section       10  fpinit.o(x$fpl$fpinit)
+    $v0                                      0x00004b8e   Number         0  fpinit.o(x$fpl$fpinit)
+    x$fpl$printf1                            0x00004b98   Section        4  printf1.o(x$fpl$printf1)
+    $v0                                      0x00004b98   Number         0  printf1.o(x$fpl$printf1)
+    .constdata                               0x00004b9c   Section      552  gpio.o(.constdata)
+    x$fpl$usenofp                            0x00004b9c   Section        0  usenofp.o(x$fpl$usenofp)
+    g_ppui32GPIOIntMapBlizzard               0x00004b9c   Data         192  gpio.o(.constdata)
+    g_ppui32GPIOIntMapSnowflake              0x00004c5c   Data         216  gpio.o(.constdata)
+    g_pui32GPIOBaseAddrs                     0x00004d34   Data         144  gpio.o(.constdata)
+    .constdata                               0x00004dc4   Section      268  interrupt.o(.constdata)
+    g_pui32Priority                          0x00004dc4   Data          32  interrupt.o(.constdata)
+    g_pui32Regs                              0x00004de4   Data         156  interrupt.o(.constdata)
+    g_pui32EnRegs                            0x00004e80   Data          20  interrupt.o(.constdata)
+    g_pui32Dii16Regs                         0x00004e94   Data          20  interrupt.o(.constdata)
+    g_pui32PendRegs                          0x00004ea8   Data          20  interrupt.o(.constdata)
+    g_pui32UnpendRegs                        0x00004ebc   Data          20  interrupt.o(.constdata)
+    .constdata                               0x00004ed0   Section      596  sysctl.o(.constdata)
+    g_pui32VCOFrequencies                    0x00004ed0   Data           8  sysctl.o(.constdata)
+    g_pui32Xtals                             0x00004ed8   Data         108  sysctl.o(.constdata)
+    g_pppui32XTALtoVCO                       0x00004f44   Data         432  sysctl.o(.constdata)
+    g_sXTALtoMEMTIM                          0x000050f4   Data          48  sysctl.o(.constdata)
+    .constdata                               0x00005124   Section        8  _printf_wctomb.o(.constdata)
+    initial_mbstate                          0x00005124   Data           8  _printf_wctomb.o(.constdata)
+    .constdata                               0x0000512c   Section       40  _printf_hex_int.o(.constdata)
+    uc_hextab                                0x0000512c   Data          20  _printf_hex_int.o(.constdata)
+    lc_hextab                                0x00005140   Data          20  _printf_hex_int.o(.constdata)
+    .constdata                               0x00005154   Section       17  __printf_flags_ss_wp.o(.constdata)
+    maptable                                 0x00005154   Data          17  __printf_flags_ss_wp.o(.constdata)
+    .constdata                               0x00005168   Section      148  bigflt0.o(.constdata)
+    tenpwrs_x                                0x00005168   Data          60  bigflt0.o(.constdata)
+    tenpwrs_i                                0x000051a4   Data          64  bigflt0.o(.constdata)
+    locale$$data                             0x0000521c   Section       28  lc_numeric_c.o(locale$$data)
+    __lcnum_c_name                           0x00005220   Data           2  lc_numeric_c.o(locale$$data)
+    __lcnum_c_start                          0x00005228   Data           0  lc_numeric_c.o(locale$$data)
+    __lcnum_c_point                          0x00005234   Data           0  lc_numeric_c.o(locale$$data)
+    __lcnum_c_thousands                      0x00005236   Data           0  lc_numeric_c.o(locale$$data)
+    __lcnum_c_grouping                       0x00005237   Data           0  lc_numeric_c.o(locale$$data)
+    locale$$data                             0x00005238   Section      272  lc_ctype_c.o(locale$$data)
+    __lcnum_c_end                            0x00005238   Data           0  lc_numeric_c.o(locale$$data)
+    __lcctype_c_name                         0x0000523c   Data           2  lc_ctype_c.o(locale$$data)
+    __lcctype_c_start                        0x00005244   Data           0  lc_ctype_c.o(locale$$data)
+    __lcctype_c_end                          0x00005348   Data           0  lc_ctype_c.o(locale$$data)
+    .data                                    0x20000000   Section      205  finalproject.o(.data)
+    is_show                                  0x200000cc   Data           1  finalproject.o(.data)
+    .data                                    0x200000d0   Section        4  system_tm4c129.o(.data)
+    .bss                                     0x200000d4   Section      404  finalproject.o(.bss)
+    .bss                                     0x20000268   Section       96  libspace.o(.bss)
+    HEAP                                     0x200002c8   Section        0  startup_tm4c129.o(HEAP)
+    STACK                                    0x200002c8   Section     1024  startup_tm4c129.o(STACK)
+    Heap_Mem                                 0x200002c8   Data           0  startup_tm4c129.o(HEAP)
+    Stack_Mem                                0x200002c8   Data        1024  startup_tm4c129.o(STACK)
+    __initial_sp                             0x200006c8   Data           0  startup_tm4c129.o(STACK)
 
     Global Symbols
 
@@ -1606,56 +1606,56 @@ Image Symbol Table
     PWMOutputState                           0x00002657   Thumb Code    16  pwm.o(i.PWMOutputState)
     PWMPulseWidthSet                         0x00002667   Thumb Code    32  pwm.o(i.PWMPulseWidthSet)
     Power_On_Init                            0x00002689   Thumb Code   138  finalproject.o(i.Power_On_Init)
-    ProcessCommand                           0x00002735   Thumb Code  3056  finalproject.o(i.ProcessCommand)
-    ReadKey                                  0x00003355   Thumb Code    20  finalproject.o(i.ReadKey)
-    RemoveSpaces                             0x0000336d   Thumb Code    66  finalproject.o(i.RemoveSpaces)
-    S800_GPIO_Init                           0x000033b1   Thumb Code    72  finalproject.o(i.S800_GPIO_Init)
-    S800_I2C0_Init                           0x00003405   Thumb Code   122  finalproject.o(i.S800_I2C0_Init)
-    S800_UART_Init                           0x0000349d   Thumb Code    74  finalproject.o(i.S800_UART_Init)
-    Show                                     0x0000350d   Thumb Code    74  finalproject.o(i.Show)
-    ShowAlarm                                0x00003561   Thumb Code    68  finalproject.o(i.ShowAlarm)
-    ShowAlarm2                               0x000035b5   Thumb Code    68  finalproject.o(i.ShowAlarm2)
-    ShowDate                                 0x00003609   Thumb Code    68  finalproject.o(i.ShowDate)
-    ShowTime                                 0x0000365d   Thumb Code    76  finalproject.o(i.ShowTime)
-    SysCtlClockFreqSet                       0x000036b9   Thumb Code   706  sysctl.o(i.SysCtlClockFreqSet)
-    SysCtlClockGet                           0x000039a5   Thumb Code   304  sysctl.o(i.SysCtlClockGet)
-    SysCtlPeripheralEnable                   0x00003af9   Thumb Code    36  sysctl.o(i.SysCtlPeripheralEnable)
-    SysCtlPeripheralReady                    0x00003b21   Thumb Code    40  sysctl.o(i.SysCtlPeripheralReady)
-    SysTickEnable                            0x00003b4d   Thumb Code    14  systick.o(i.SysTickEnable)
-    SysTickIntEnable                         0x00003b5b   Thumb Code    14  systick.o(i.SysTickIntEnable)
-    SysTickIntHandler                        0x00003b69   Thumb Code  1120  finalproject.o(i.SysTickIntHandler)
-    SysTickPeriodSet                         0x00003fcd   Thumb Code    10  systick.o(i.SysTickPeriodSet)
-    SystemInit                               0x00003fd9   Thumb Code    20  system_tm4c129.o(i.SystemInit)
-    UART0_Handler                            0x00003ff9   Thumb Code   158  finalproject.o(i.UART0_Handler)
-    UART0_ProcessCommands                    0x000040a1   Thumb Code    76  finalproject.o(i.UART0_ProcessCommands)
-    UARTCharGetNonBlocking                   0x000040f5   Thumb Code    16  uart.o(i.UARTCharGetNonBlocking)
-    UARTCharPut                              0x00004105   Thumb Code    12  uart.o(i.UARTCharPut)
-    UARTCharsAvail                           0x00004111   Thumb Code    10  uart.o(i.UARTCharsAvail)
-    UARTConfigSetExpClk                      0x0000411b   Thumb Code   110  uart.o(i.UARTConfigSetExpClk)
-    UARTIntClear                             0x00004189   Thumb Code     4  uart.o(i.UARTIntClear)
-    UARTIntEnable                            0x0000418d   Thumb Code     8  uart.o(i.UARTIntEnable)
-    UARTIntStatus                            0x00004195   Thumb Code    10  uart.o(i.UARTIntStatus)
-    UARTStringPut                            0x000041a1   Thumb Code    24  finalproject.o(i.UARTStringPut)
-    Uint16ToString                           0x000041bd   Thumb Code    20  finalproject.o(i.Uint16ToString)
-    Uint8ToString                            0x000041d5   Thumb Code    20  finalproject.o(i.Uint8ToString)
-    __ARM_fpclassify                         0x000041ed   Thumb Code    48  fpclassify.o(i.__ARM_fpclassify)
-    _is_digit                                0x0000421d   Thumb Code    14  __printf_wp.o(i._is_digit)
-    get_temperature                          0x0000422d   Thumb Code   104  finalproject.o(i.get_temperature)
-    main                                     0x000042b1   Thumb Code  2042  finalproject.o(i.main)
-    _get_lc_numeric                          0x00004ad1   Thumb Code    44  lc_numeric_c.o(locale$$code)
-    _get_lc_ctype                            0x00004afd   Thumb Code    44  lc_ctype_c.o(locale$$code)
-    __fpl_dretinf                            0x00004b29   Thumb Code    12  dretinf.o(x$fpl$dretinf)
-    __aeabi_f2d                              0x00004b35   Thumb Code     0  f2d.o(x$fpl$f2d)
-    _f2d                                     0x00004b35   Thumb Code    86  f2d.o(x$fpl$f2d)
-    __fpl_fnaninf                            0x00004b8b   Thumb Code   140  fnaninf.o(x$fpl$fnaninf)
-    _fp_init                                 0x00004c17   Thumb Code    10  fpinit.o(x$fpl$fpinit)
-    __fplib_config_fpu_vfp                   0x00004c1f   Thumb Code     0  fpinit.o(x$fpl$fpinit)
-    __fplib_config_pureend_doubles           0x00004c1f   Thumb Code     0  fpinit.o(x$fpl$fpinit)
-    _printf_fp_dec                           0x00004c21   Thumb Code     4  printf1.o(x$fpl$printf1)
-    __I$use$fp                               0x00004c24   Number         0  usenofp.o(x$fpl$usenofp)
-    Region$$Table$$Base                      0x00005284   Number         0  anon$$obj.o(Region$$Table)
-    Region$$Table$$Limit                     0x000052a4   Number         0  anon$$obj.o(Region$$Table)
-    __ctype                                  0x000052cd   Data           0  lc_ctype_c.o(locale$$data)
+    ProcessCommand                           0x00002735   Thumb Code  2974  finalproject.o(i.ProcessCommand)
+    ReadKey                                  0x00003305   Thumb Code    20  finalproject.o(i.ReadKey)
+    RemoveSpaces                             0x0000331d   Thumb Code    66  finalproject.o(i.RemoveSpaces)
+    S800_GPIO_Init                           0x00003361   Thumb Code    72  finalproject.o(i.S800_GPIO_Init)
+    S800_I2C0_Init                           0x000033b5   Thumb Code   122  finalproject.o(i.S800_I2C0_Init)
+    S800_UART_Init                           0x0000344d   Thumb Code    74  finalproject.o(i.S800_UART_Init)
+    Show                                     0x000034bd   Thumb Code    74  finalproject.o(i.Show)
+    ShowAlarm                                0x00003511   Thumb Code    68  finalproject.o(i.ShowAlarm)
+    ShowAlarm2                               0x00003565   Thumb Code    68  finalproject.o(i.ShowAlarm2)
+    ShowDate                                 0x000035b9   Thumb Code    68  finalproject.o(i.ShowDate)
+    ShowTime                                 0x0000360d   Thumb Code    68  finalproject.o(i.ShowTime)
+    SysCtlClockFreqSet                       0x00003661   Thumb Code   706  sysctl.o(i.SysCtlClockFreqSet)
+    SysCtlClockGet                           0x0000394d   Thumb Code   304  sysctl.o(i.SysCtlClockGet)
+    SysCtlPeripheralEnable                   0x00003aa1   Thumb Code    36  sysctl.o(i.SysCtlPeripheralEnable)
+    SysCtlPeripheralReady                    0x00003ac9   Thumb Code    40  sysctl.o(i.SysCtlPeripheralReady)
+    SysTickEnable                            0x00003af5   Thumb Code    14  systick.o(i.SysTickEnable)
+    SysTickIntEnable                         0x00003b03   Thumb Code    14  systick.o(i.SysTickIntEnable)
+    SysTickIntHandler                        0x00003b11   Thumb Code  1120  finalproject.o(i.SysTickIntHandler)
+    SysTickPeriodSet                         0x00003f75   Thumb Code    10  systick.o(i.SysTickPeriodSet)
+    SystemInit                               0x00003f81   Thumb Code    20  system_tm4c129.o(i.SystemInit)
+    UART0_Handler                            0x00003fa1   Thumb Code   158  finalproject.o(i.UART0_Handler)
+    UART0_ProcessCommands                    0x00004049   Thumb Code    62  finalproject.o(i.UART0_ProcessCommands)
+    UARTCharGetNonBlocking                   0x0000408d   Thumb Code    16  uart.o(i.UARTCharGetNonBlocking)
+    UARTCharPut                              0x0000409d   Thumb Code    12  uart.o(i.UARTCharPut)
+    UARTCharsAvail                           0x000040a9   Thumb Code    10  uart.o(i.UARTCharsAvail)
+    UARTConfigSetExpClk                      0x000040b3   Thumb Code   110  uart.o(i.UARTConfigSetExpClk)
+    UARTIntClear                             0x00004121   Thumb Code     4  uart.o(i.UARTIntClear)
+    UARTIntEnable                            0x00004125   Thumb Code     8  uart.o(i.UARTIntEnable)
+    UARTIntStatus                            0x0000412d   Thumb Code    10  uart.o(i.UARTIntStatus)
+    UARTStringPut                            0x00004139   Thumb Code    24  finalproject.o(i.UARTStringPut)
+    Uint16ToString                           0x00004155   Thumb Code    20  finalproject.o(i.Uint16ToString)
+    Uint8ToString                            0x0000416d   Thumb Code    20  finalproject.o(i.Uint8ToString)
+    __ARM_fpclassify                         0x00004185   Thumb Code    48  fpclassify.o(i.__ARM_fpclassify)
+    _is_digit                                0x000041b5   Thumb Code    14  __printf_wp.o(i._is_digit)
+    get_temperature                          0x000041c5   Thumb Code    96  finalproject.o(i.get_temperature)
+    main                                     0x00004241   Thumb Code  2018  finalproject.o(i.main)
+    _get_lc_numeric                          0x00004a49   Thumb Code    44  lc_numeric_c.o(locale$$code)
+    _get_lc_ctype                            0x00004a75   Thumb Code    44  lc_ctype_c.o(locale$$code)
+    __fpl_dretinf                            0x00004aa1   Thumb Code    12  dretinf.o(x$fpl$dretinf)
+    __aeabi_f2d                              0x00004aad   Thumb Code     0  f2d.o(x$fpl$f2d)
+    _f2d                                     0x00004aad   Thumb Code    86  f2d.o(x$fpl$f2d)
+    __fpl_fnaninf                            0x00004b03   Thumb Code   140  fnaninf.o(x$fpl$fnaninf)
+    _fp_init                                 0x00004b8f   Thumb Code    10  fpinit.o(x$fpl$fpinit)
+    __fplib_config_fpu_vfp                   0x00004b97   Thumb Code     0  fpinit.o(x$fpl$fpinit)
+    __fplib_config_pureend_doubles           0x00004b97   Thumb Code     0  fpinit.o(x$fpl$fpinit)
+    _printf_fp_dec                           0x00004b99   Thumb Code     4  printf1.o(x$fpl$printf1)
+    __I$use$fp                               0x00004b9c   Number         0  usenofp.o(x$fpl$usenofp)
+    Region$$Table$$Base                      0x000051fc   Number         0  anon$$obj.o(Region$$Table)
+    Region$$Table$$Limit                     0x0000521c   Number         0  anon$$obj.o(Region$$Table)
+    __ctype                                  0x00005245   Data           0  lc_ctype_c.o(locale$$data)
     result                                   0x20000000   Data           1  finalproject.o(.data)
     ui32SysClock                             0x20000004   Data           4  finalproject.o(.data)
     ui32IntPriorityGroup                     0x20000008   Data           4  finalproject.o(.data)
@@ -1663,47 +1663,48 @@ Image Symbol Table
     ui32IntPrioritySystick                   0x20000010   Data           4  finalproject.o(.data)
     ui32IntPriorityUart0                     0x20000014   Data           4  finalproject.o(.data)
     num_seg7                                 0x20000018   Data          47  finalproject.o(.data)
-    currentMode                              0x20000047   Data           1  finalproject.o(.data)
-    currentState                             0x20000048   Data           1  finalproject.o(.data)
-    currentKey                               0x20000049   Data           1  finalproject.o(.data)
-    lastKeyState                             0x2000004a   Data           1  finalproject.o(.data)
-    Buffer                                   0x2000004b   Data           8  finalproject.o(.data)
-    Time_buffer                              0x20000053   Data           3  finalproject.o(.data)
-    Time_RST_buffer                          0x20000056   Data           3  finalproject.o(.data)
-    Date_buffer                              0x2000005a   Data           4  finalproject.o(.data)
-    Date_RST_buffer                          0x2000005e   Data           4  finalproject.o(.data)
-    Alarm_buffer                             0x20000062   Data           3  finalproject.o(.data)
-    Alarm_RST_buffer                         0x20000065   Data           3  finalproject.o(.data)
-    Alarm_buffer2                            0x20000068   Data           3  finalproject.o(.data)
-    Alarm_RST_buffer2                        0x2000006b   Data           3  finalproject.o(.data)
-    Blank_buffer                             0x2000006e   Data           8  finalproject.o(.data)
-    float_cnt                                0x20000078   Data           4  finalproject.o(.data)
-    time_cnt                                 0x2000007c   Data           2  finalproject.o(.data)
-    left_float_speed                         0x2000007e   Data           1  finalproject.o(.data)
-    right_float_speed                        0x2000007f   Data           1  finalproject.o(.data)
-    date_blink_start_bit                     0x20000080   Data           1  finalproject.o(.data)
-    date_blink_end_bit                       0x20000081   Data           1  finalproject.o(.data)
-    blink_start_bit                          0x20000082   Data           1  finalproject.o(.data)
-    blink_end_bit                            0x20000083   Data           1  finalproject.o(.data)
-    bit_cnt                                  0x20000084   Data           1  finalproject.o(.data)
-    blink_time_cnt                           0x20000086   Data           2  finalproject.o(.data)
-    run_time_cnt                             0x20000088   Data           2  finalproject.o(.data)
-    time_sec_carry                           0x2000008a   Data           1  finalproject.o(.data)
-    time_min_carry                           0x2000008b   Data           1  finalproject.o(.data)
-    alarm_sec_carry                          0x2000008c   Data           1  finalproject.o(.data)
-    alarm_min_carry                          0x2000008d   Data           1  finalproject.o(.data)
-    beep_flag                                0x2000008e   Data           1  finalproject.o(.data)
-    reverse_flag                             0x2000008f   Data           1  finalproject.o(.data)
-    blank_flag                               0x20000090   Data           1  finalproject.o(.data)
-    ui32ADCValue                             0x20000094   Data           4  finalproject.o(.data)
-    vRefDiff                                 0x20000098   Data           4  finalproject.o(.data)
-    fTemperature                             0x2000009c   Data           4  finalproject.o(.data)
-    SystemCoreClock                          0x200000a4   Data           4  system_tm4c129.o(.data)
-    Float_buffer                             0x200000a8   Data          16  finalproject.o(.bss)
-    UART0_Rx                                 0x200000b8   Data         260  finalproject.o(.bss)
-    txBuffer                                 0x200001bc   Data         128  finalproject.o(.bss)
-    __libspace_start                         0x2000023c   Data          96  libspace.o(.bss)
-    __temporary_stack_top$libspace           0x2000029c   Data           0  libspace.o(.bss)
+    mirror_num_seg7                          0x20000047   Data          47  finalproject.o(.data)
+    currentMode                              0x20000076   Data           1  finalproject.o(.data)
+    currentState                             0x20000077   Data           1  finalproject.o(.data)
+    currentKey                               0x20000078   Data           1  finalproject.o(.data)
+    lastKeyState                             0x20000079   Data           1  finalproject.o(.data)
+    Buffer                                   0x2000007a   Data           8  finalproject.o(.data)
+    Time_buffer                              0x20000082   Data           3  finalproject.o(.data)
+    Time_RST_buffer                          0x20000085   Data           3  finalproject.o(.data)
+    Date_buffer                              0x20000088   Data           4  finalproject.o(.data)
+    Date_RST_buffer                          0x2000008c   Data           4  finalproject.o(.data)
+    Alarm_buffer                             0x20000090   Data           3  finalproject.o(.data)
+    Alarm_RST_buffer                         0x20000093   Data           3  finalproject.o(.data)
+    Alarm_buffer2                            0x20000096   Data           3  finalproject.o(.data)
+    Alarm_RST_buffer2                        0x20000099   Data           3  finalproject.o(.data)
+    Blank_buffer                             0x2000009c   Data           8  finalproject.o(.data)
+    float_cnt                                0x200000a4   Data           4  finalproject.o(.data)
+    time_cnt                                 0x200000a8   Data           2  finalproject.o(.data)
+    left_float_speed                         0x200000aa   Data           1  finalproject.o(.data)
+    right_float_speed                        0x200000ab   Data           1  finalproject.o(.data)
+    date_blink_start_bit                     0x200000ac   Data           1  finalproject.o(.data)
+    date_blink_end_bit                       0x200000ad   Data           1  finalproject.o(.data)
+    blink_start_bit                          0x200000ae   Data           1  finalproject.o(.data)
+    blink_end_bit                            0x200000af   Data           1  finalproject.o(.data)
+    bit_cnt                                  0x200000b0   Data           1  finalproject.o(.data)
+    blink_time_cnt                           0x200000b2   Data           2  finalproject.o(.data)
+    run_time_cnt                             0x200000b4   Data           2  finalproject.o(.data)
+    time_sec_carry                           0x200000b6   Data           1  finalproject.o(.data)
+    time_min_carry                           0x200000b7   Data           1  finalproject.o(.data)
+    alarm_sec_carry                          0x200000b8   Data           1  finalproject.o(.data)
+    alarm_min_carry                          0x200000b9   Data           1  finalproject.o(.data)
+    beep_flag                                0x200000ba   Data           1  finalproject.o(.data)
+    reverse_flag                             0x200000bb   Data           1  finalproject.o(.data)
+    blank_flag                               0x200000bc   Data           1  finalproject.o(.data)
+    ui32ADCValue                             0x200000c0   Data           4  finalproject.o(.data)
+    vRefDiff                                 0x200000c4   Data           4  finalproject.o(.data)
+    fTemperature                             0x200000c8   Data           4  finalproject.o(.data)
+    SystemCoreClock                          0x200000d0   Data           4  system_tm4c129.o(.data)
+    Float_buffer                             0x200000d4   Data          16  finalproject.o(.bss)
+    UART0_Rx                                 0x200000e4   Data         260  finalproject.o(.bss)
+    txBuffer                                 0x200001e8   Data         128  finalproject.o(.bss)
+    __libspace_start                         0x20000268   Data          96  libspace.o(.bss)
+    __temporary_stack_top$libspace           0x200002c8   Data           0  libspace.o(.bss)
 
 
 
@@ -1713,9 +1714,9 @@ Memory Map of the image
 
   Image Entry point : 0x00000201
 
-  Load Region LR_IROM1 (Base: 0x00000000, Size: 0x00005478, Max: 0x00100000, ABSOLUTE)
+  Load Region LR_IROM1 (Base: 0x00000000, Size: 0x0000541c, Max: 0x00100000, ABSOLUTE)
 
-    Execution Region ER_IROM1 (Exec base: 0x00000000, Load base: 0x00000000, Size: 0x000053d0, Max: 0x00100000, ABSOLUTE)
+    Execution Region ER_IROM1 (Exec base: 0x00000000, Load base: 0x00000000, Size: 0x00005348, Max: 0x00100000, ABSOLUTE)
 
     Exec Addr    Load Addr    Size         Type   Attr      Idx    E Section Name        Object
 
@@ -1886,79 +1887,78 @@ Memory Map of the image
     0x00002666   0x00002666   0x00000020   Code   RO         1419    i.PWMPulseWidthSet  driverlib.lib(pwm.o)
     0x00002686   0x00002686   0x00000002   PAD
     0x00002688   0x00002688   0x000000ac   Code   RO           14    i.Power_On_Init     finalproject.o
-    0x00002734   0x00002734   0x00000c20   Code   RO           15    i.ProcessCommand    finalproject.o
-    0x00003354   0x00003354   0x00000018   Code   RO           16    i.ReadKey           finalproject.o
-    0x0000336c   0x0000336c   0x00000042   Code   RO           17    i.RemoveSpaces      finalproject.o
-    0x000033ae   0x000033ae   0x00000002   PAD
-    0x000033b0   0x000033b0   0x00000054   Code   RO           18    i.S800_GPIO_Init    finalproject.o
-    0x00003404   0x00003404   0x00000098   Code   RO           19    i.S800_I2C0_Init    finalproject.o
-    0x0000349c   0x0000349c   0x00000070   Code   RO           20    i.S800_UART_Init    finalproject.o
-    0x0000350c   0x0000350c   0x00000054   Code   RO           21    i.Show              finalproject.o
-    0x00003560   0x00003560   0x00000054   Code   RO           22    i.ShowAlarm         finalproject.o
-    0x000035b4   0x000035b4   0x00000054   Code   RO           23    i.ShowAlarm2        finalproject.o
-    0x00003608   0x00003608   0x00000054   Code   RO           24    i.ShowDate          finalproject.o
-    0x0000365c   0x0000365c   0x0000005c   Code   RO           25    i.ShowTime          finalproject.o
-    0x000036b8   0x000036b8   0x000002ec   Code   RO         1621    i.SysCtlClockFreqSet  driverlib.lib(sysctl.o)
-    0x000039a4   0x000039a4   0x00000154   Code   RO         1622    i.SysCtlClockGet    driverlib.lib(sysctl.o)
-    0x00003af8   0x00003af8   0x00000028   Code   RO         1653    i.SysCtlPeripheralEnable  driverlib.lib(sysctl.o)
-    0x00003b20   0x00003b20   0x0000002c   Code   RO         1657    i.SysCtlPeripheralReady  driverlib.lib(sysctl.o)
-    0x00003b4c   0x00003b4c   0x0000000e   Code   RO         1968    i.SysTickEnable     driverlib.lib(systick.o)
-    0x00003b5a   0x00003b5a   0x0000000e   Code   RO         1970    i.SysTickIntEnable  driverlib.lib(systick.o)
-    0x00003b68   0x00003b68   0x00000464   Code   RO           26    i.SysTickIntHandler  finalproject.o
-    0x00003fcc   0x00003fcc   0x0000000a   Code   RO         1974    i.SysTickPeriodSet  driverlib.lib(systick.o)
-    0x00003fd6   0x00003fd6   0x00000002   PAD
-    0x00003fd8   0x00003fd8   0x00000020   Code   RO          297    i.SystemInit        system_tm4c129.o
-    0x00003ff8   0x00003ff8   0x000000a8   Code   RO           27    i.UART0_Handler     finalproject.o
-    0x000040a0   0x000040a0   0x00000054   Code   RO           28    i.UART0_ProcessCommands  finalproject.o
-    0x000040f4   0x000040f4   0x00000010   Code   RO         2037    i.UARTCharGetNonBlocking  driverlib.lib(uart.o)
-    0x00004104   0x00004104   0x0000000c   Code   RO         2038    i.UARTCharPut       driverlib.lib(uart.o)
-    0x00004110   0x00004110   0x0000000a   Code   RO         2040    i.UARTCharsAvail    driverlib.lib(uart.o)
-    0x0000411a   0x0000411a   0x0000006e   Code   RO         2044    i.UARTConfigSetExpClk  driverlib.lib(uart.o)
-    0x00004188   0x00004188   0x00000004   Code   RO         2057    i.UARTIntClear      driverlib.lib(uart.o)
-    0x0000418c   0x0000418c   0x00000008   Code   RO         2059    i.UARTIntEnable     driverlib.lib(uart.o)
-    0x00004194   0x00004194   0x0000000a   Code   RO         2061    i.UARTIntStatus     driverlib.lib(uart.o)
-    0x0000419e   0x0000419e   0x00000002   PAD
-    0x000041a0   0x000041a0   0x0000001c   Code   RO           29    i.UARTStringPut     finalproject.o
-    0x000041bc   0x000041bc   0x00000018   Code   RO           31    i.Uint16ToString    finalproject.o
-    0x000041d4   0x000041d4   0x00000018   Code   RO           32    i.Uint8ToString     finalproject.o
-    0x000041ec   0x000041ec   0x00000030   Code   RO         2516    i.__ARM_fpclassify  m_wm.l(fpclassify.o)
-    0x0000421c   0x0000421c   0x0000000e   Code   RO         2391    i._is_digit         c_w.l(__printf_wp.o)
-    0x0000422a   0x0000422a   0x00000002   PAD
-    0x0000422c   0x0000422c   0x00000084   Code   RO           33    i.get_temperature   finalproject.o
-    0x000042b0   0x000042b0   0x00000820   Code   RO           34    i.main              finalproject.o
-    0x00004ad0   0x00004ad0   0x0000002c   Code   RO         2508    locale$$code        c_w.l(lc_numeric_c.o)
-    0x00004afc   0x00004afc   0x0000002c   Code   RO         2524    locale$$code        c_w.l(lc_ctype_c.o)
-    0x00004b28   0x00004b28   0x0000000c   Code   RO         2449    x$fpl$dretinf       fz_wm.l(dretinf.o)
-    0x00004b34   0x00004b34   0x00000056   Code   RO         2422    x$fpl$f2d           fz_wm.l(f2d.o)
-    0x00004b8a   0x00004b8a   0x0000008c   Code   RO         2451    x$fpl$fnaninf       fz_wm.l(fnaninf.o)
-    0x00004c16   0x00004c16   0x0000000a   Code   RO         2583    x$fpl$fpinit        fz_wm.l(fpinit.o)
-    0x00004c20   0x00004c20   0x00000004   Code   RO         2424    x$fpl$printf1       fz_wm.l(printf1.o)
-    0x00004c24   0x00004c24   0x00000000   Code   RO         2453    x$fpl$usenofp       fz_wm.l(usenofp.o)
-    0x00004c24   0x00004c24   0x00000228   Data   RO          675    .constdata          driverlib.lib(gpio.o)
-    0x00004e4c   0x00004e4c   0x0000010c   Data   RO         1287    .constdata          driverlib.lib(interrupt.o)
-    0x00004f58   0x00004f58   0x00000254   Data   RO         1675    .constdata          driverlib.lib(sysctl.o)
-    0x000051ac   0x000051ac   0x00000008   Data   RO         2352    .constdata          c_w.l(_printf_wctomb.o)
-    0x000051b4   0x000051b4   0x00000028   Data   RO         2364    .constdata          c_w.l(_printf_hex_int.o)
-    0x000051dc   0x000051dc   0x00000011   Data   RO         2399    .constdata          c_w.l(__printf_flags_ss_wp.o)
-    0x000051ed   0x000051ed   0x00000003   PAD
-    0x000051f0   0x000051f0   0x00000094   Data   RO         2483    .constdata          c_w.l(bigflt0.o)
-    0x00005284   0x00005284   0x00000020   Data   RO         2658    Region$$Table       anon$$obj.o
-    0x000052a4   0x000052a4   0x0000001c   Data   RO         2507    locale$$data        c_w.l(lc_numeric_c.o)
-    0x000052c0   0x000052c0   0x00000110   Data   RO         2523    locale$$data        c_w.l(lc_ctype_c.o)
+    0x00002734   0x00002734   0x00000bd0   Code   RO           15    i.ProcessCommand    finalproject.o
+    0x00003304   0x00003304   0x00000018   Code   RO           16    i.ReadKey           finalproject.o
+    0x0000331c   0x0000331c   0x00000042   Code   RO           17    i.RemoveSpaces      finalproject.o
+    0x0000335e   0x0000335e   0x00000002   PAD
+    0x00003360   0x00003360   0x00000054   Code   RO           18    i.S800_GPIO_Init    finalproject.o
+    0x000033b4   0x000033b4   0x00000098   Code   RO           19    i.S800_I2C0_Init    finalproject.o
+    0x0000344c   0x0000344c   0x00000070   Code   RO           20    i.S800_UART_Init    finalproject.o
+    0x000034bc   0x000034bc   0x00000054   Code   RO           21    i.Show              finalproject.o
+    0x00003510   0x00003510   0x00000054   Code   RO           22    i.ShowAlarm         finalproject.o
+    0x00003564   0x00003564   0x00000054   Code   RO           23    i.ShowAlarm2        finalproject.o
+    0x000035b8   0x000035b8   0x00000054   Code   RO           24    i.ShowDate          finalproject.o
+    0x0000360c   0x0000360c   0x00000054   Code   RO           25    i.ShowTime          finalproject.o
+    0x00003660   0x00003660   0x000002ec   Code   RO         1621    i.SysCtlClockFreqSet  driverlib.lib(sysctl.o)
+    0x0000394c   0x0000394c   0x00000154   Code   RO         1622    i.SysCtlClockGet    driverlib.lib(sysctl.o)
+    0x00003aa0   0x00003aa0   0x00000028   Code   RO         1653    i.SysCtlPeripheralEnable  driverlib.lib(sysctl.o)
+    0x00003ac8   0x00003ac8   0x0000002c   Code   RO         1657    i.SysCtlPeripheralReady  driverlib.lib(sysctl.o)
+    0x00003af4   0x00003af4   0x0000000e   Code   RO         1968    i.SysTickEnable     driverlib.lib(systick.o)
+    0x00003b02   0x00003b02   0x0000000e   Code   RO         1970    i.SysTickIntEnable  driverlib.lib(systick.o)
+    0x00003b10   0x00003b10   0x00000464   Code   RO           26    i.SysTickIntHandler  finalproject.o
+    0x00003f74   0x00003f74   0x0000000a   Code   RO         1974    i.SysTickPeriodSet  driverlib.lib(systick.o)
+    0x00003f7e   0x00003f7e   0x00000002   PAD
+    0x00003f80   0x00003f80   0x00000020   Code   RO          297    i.SystemInit        system_tm4c129.o
+    0x00003fa0   0x00003fa0   0x000000a8   Code   RO           27    i.UART0_Handler     finalproject.o
+    0x00004048   0x00004048   0x00000044   Code   RO           28    i.UART0_ProcessCommands  finalproject.o
+    0x0000408c   0x0000408c   0x00000010   Code   RO         2037    i.UARTCharGetNonBlocking  driverlib.lib(uart.o)
+    0x0000409c   0x0000409c   0x0000000c   Code   RO         2038    i.UARTCharPut       driverlib.lib(uart.o)
+    0x000040a8   0x000040a8   0x0000000a   Code   RO         2040    i.UARTCharsAvail    driverlib.lib(uart.o)
+    0x000040b2   0x000040b2   0x0000006e   Code   RO         2044    i.UARTConfigSetExpClk  driverlib.lib(uart.o)
+    0x00004120   0x00004120   0x00000004   Code   RO         2057    i.UARTIntClear      driverlib.lib(uart.o)
+    0x00004124   0x00004124   0x00000008   Code   RO         2059    i.UARTIntEnable     driverlib.lib(uart.o)
+    0x0000412c   0x0000412c   0x0000000a   Code   RO         2061    i.UARTIntStatus     driverlib.lib(uart.o)
+    0x00004136   0x00004136   0x00000002   PAD
+    0x00004138   0x00004138   0x0000001c   Code   RO           29    i.UARTStringPut     finalproject.o
+    0x00004154   0x00004154   0x00000018   Code   RO           31    i.Uint16ToString    finalproject.o
+    0x0000416c   0x0000416c   0x00000018   Code   RO           32    i.Uint8ToString     finalproject.o
+    0x00004184   0x00004184   0x00000030   Code   RO         2516    i.__ARM_fpclassify  m_wm.l(fpclassify.o)
+    0x000041b4   0x000041b4   0x0000000e   Code   RO         2391    i._is_digit         c_w.l(__printf_wp.o)
+    0x000041c2   0x000041c2   0x00000002   PAD
+    0x000041c4   0x000041c4   0x0000007c   Code   RO           33    i.get_temperature   finalproject.o
+    0x00004240   0x00004240   0x00000808   Code   RO           34    i.main              finalproject.o
+    0x00004a48   0x00004a48   0x0000002c   Code   RO         2508    locale$$code        c_w.l(lc_numeric_c.o)
+    0x00004a74   0x00004a74   0x0000002c   Code   RO         2524    locale$$code        c_w.l(lc_ctype_c.o)
+    0x00004aa0   0x00004aa0   0x0000000c   Code   RO         2449    x$fpl$dretinf       fz_wm.l(dretinf.o)
+    0x00004aac   0x00004aac   0x00000056   Code   RO         2422    x$fpl$f2d           fz_wm.l(f2d.o)
+    0x00004b02   0x00004b02   0x0000008c   Code   RO         2451    x$fpl$fnaninf       fz_wm.l(fnaninf.o)
+    0x00004b8e   0x00004b8e   0x0000000a   Code   RO         2583    x$fpl$fpinit        fz_wm.l(fpinit.o)
+    0x00004b98   0x00004b98   0x00000004   Code   RO         2424    x$fpl$printf1       fz_wm.l(printf1.o)
+    0x00004b9c   0x00004b9c   0x00000000   Code   RO         2453    x$fpl$usenofp       fz_wm.l(usenofp.o)
+    0x00004b9c   0x00004b9c   0x00000228   Data   RO          675    .constdata          driverlib.lib(gpio.o)
+    0x00004dc4   0x00004dc4   0x0000010c   Data   RO         1287    .constdata          driverlib.lib(interrupt.o)
+    0x00004ed0   0x00004ed0   0x00000254   Data   RO         1675    .constdata          driverlib.lib(sysctl.o)
+    0x00005124   0x00005124   0x00000008   Data   RO         2352    .constdata          c_w.l(_printf_wctomb.o)
+    0x0000512c   0x0000512c   0x00000028   Data   RO         2364    .constdata          c_w.l(_printf_hex_int.o)
+    0x00005154   0x00005154   0x00000011   Data   RO         2399    .constdata          c_w.l(__printf_flags_ss_wp.o)
+    0x00005165   0x00005165   0x00000003   PAD
+    0x00005168   0x00005168   0x00000094   Data   RO         2483    .constdata          c_w.l(bigflt0.o)
+    0x000051fc   0x000051fc   0x00000020   Data   RO         2658    Region$$Table       anon$$obj.o
+    0x0000521c   0x0000521c   0x0000001c   Data   RO         2507    locale$$data        c_w.l(lc_numeric_c.o)
+    0x00005238   0x00005238   0x00000110   Data   RO         2523    locale$$data        c_w.l(lc_ctype_c.o)
 
 
-    Execution Region RW_IRAM1 (Exec base: 0x20000000, Load base: 0x000053d0, Size: 0x000006a0, Max: 0x00040000, ABSOLUTE)
+    Execution Region RW_IRAM1 (Exec base: 0x20000000, Load base: 0x00005348, Size: 0x000006c8, Max: 0x00040000, ABSOLUTE)
 
     Exec Addr    Load Addr    Size         Type   Attr      Idx    E Section Name        Object
 
-    0x20000000   0x000053d0   0x000000a1   Data   RW           36    .data               finalproject.o
-    0x200000a1   0x00005471   0x00000003   PAD
-    0x200000a4   0x00005474   0x00000004   Data   RW          298    .data               system_tm4c129.o
-    0x200000a8        -       0x00000194   Zero   RW           35    .bss                finalproject.o
-    0x2000023c        -       0x00000060   Zero   RW         2519    .bss                c_w.l(libspace.o)
-    0x2000029c   0x00005478   0x00000004   PAD
-    0x200002a0        -       0x00000000   Zero   RW          286    HEAP                startup_tm4c129.o
-    0x200002a0        -       0x00000400   Zero   RW          285    STACK               startup_tm4c129.o
+    0x20000000   0x00005348   0x000000cd   Data   RW           36    .data               finalproject.o
+    0x200000cd   0x00005415   0x00000003   PAD
+    0x200000d0   0x00005418   0x00000004   Data   RW          298    .data               system_tm4c129.o
+    0x200000d4        -       0x00000194   Zero   RW           35    .bss                finalproject.o
+    0x20000268        -       0x00000060   Zero   RW         2519    .bss                c_w.l(libspace.o)
+    0x200002c8        -       0x00000000   Zero   RW          286    HEAP                startup_tm4c129.o
+    0x200002c8        -       0x00000400   Zero   RW          285    STACK               startup_tm4c129.o
 
 
 ==============================================================================
@@ -1968,12 +1968,12 @@ Image component sizes
 
       Code (inc. data)   RO Data    RW Data    ZI Data      Debug   Object Name
 
-      8918       1222          0        161        404      28638   finalproject.o
+      8782       1160          0        205        404      28670   finalproject.o
        300         22        512          0       1024       6028   startup_tm4c129.o
         32         12          0          4          0        695   system_tm4c129.o
 
     ----------------------------------------------------------------------
-      9252       1256        544        168       1428      35361   Object Totals
+      9116       1194        544        212       1428      35393   Object Totals
          0          0         32          0          0          0   (incl. Generated)
          2          0          0          3          0          0   (incl. Padding)
 
@@ -2064,8 +2064,8 @@ Image component sizes
         48          0          0          0          0        124   fpclassify.o
 
     ----------------------------------------------------------------------
-      9728        390       1932          0        100      47294   Library Totals
-        24          0          3          0          4          0   (incl. Padding)
+      9728        390       1932          0         96      47294   Library Totals
+        24          0          3          0          0          0   (incl. Padding)
 
     ----------------------------------------------------------------------
 
@@ -2077,7 +2077,7 @@ Image component sizes
         48          0          0          0          0        124   m_wm.l
 
     ----------------------------------------------------------------------
-      9728        390       1932          0        100      47294   Library Totals
+      9728        390       1932          0         96      47294   Library Totals
 
     ----------------------------------------------------------------------
 
@@ -2086,15 +2086,15 @@ Image component sizes
 
       Code (inc. data)   RO Data    RW Data    ZI Data      Debug   
 
-     18980       1646       2476        168       1528      72015   Grand Totals
-     18980       1646       2476        168       1528      72015   ELF Image Totals
-     18980       1646       2476        168          0          0   ROM Totals
+     18844       1584       2476        212       1524      72047   Grand Totals
+     18844       1584       2476        212       1524      72047   ELF Image Totals
+     18844       1584       2476        212          0          0   ROM Totals
 
 ==============================================================================
 
-    Total RO  Size (Code + RO Data)                21456 (  20.95kB)
-    Total RW  Size (RW Data + ZI Data)              1696 (   1.66kB)
-    Total ROM Size (Code + RO Data + RW Data)      21624 (  21.12kB)
+    Total RO  Size (Code + RO Data)                21320 (  20.82kB)
+    Total RW  Size (RW Data + ZI Data)              1736 (   1.70kB)
+    Total ROM Size (Code + RO Data + RW Data)      21532 (  21.03kB)
 
 ==============================================================================
 

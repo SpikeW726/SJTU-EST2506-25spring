@@ -3,7 +3,7 @@
 <title>Static Call Graph - [.\Objects\exp1.axf]</title></head>
 <body><HR>
 <H1>Static Call Graph for image .\Objects\exp1.axf</H1><HR>
-<BR><P>#&#060CALLGRAPH&#062# ARM Linker, 5060750: Last Updated: Sat Jun 14 01:44:25 2025
+<BR><P>#&#060CALLGRAPH&#062# ARM Linker, 5060750: Last Updated: Sat Jun 14 11:50:04 2025
 <BR><P>
 <H3>Maximum Stack Usage =        324 bytes + Unknown(Functions without stacksize, Cycles, Untraceable Function Pointers)</H3><H3>
 Call chain for Maximum Stack Depth:</H3>
@@ -1410,7 +1410,7 @@ Global Symbols
 <LI><a href="#[b2]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;_printf_char_common
 </UL>
 <BR>[Called By]<UL><LI><a href="#[111]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Uint8ToString
-<LI><a href="#[110]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Uint16ToString
+<LI><a href="#[10f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Uint16ToString
 <LI><a href="#[f2]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;FloatToString
 </UL>
 
@@ -1507,7 +1507,7 @@ Global Symbols
 <BR>[Called By]<UL><LI><a href="#[b2]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;_printf_char_common
 </UL>
 
-<P><STRONG><a name="[10e]"></a>strncmp</STRONG> (Thumb, 150 bytes, Stack size 16 bytes, strncmp.o(.text))
+<P><STRONG><a name="[10d]"></a>strncmp</STRONG> (Thumb, 150 bytes, Stack size 16 bytes, strncmp.o(.text))
 <BR><BR>[Stack]<UL><LI>Max Depth = 16<LI>Call Chain = strncmp
 </UL>
 <BR>[Called By]<UL><LI><a href="#[10c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ProcessCommand
@@ -1532,7 +1532,7 @@ Global Symbols
 <BR>[Called By]<UL><LI><a href="#[125]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;UART0_ProcessCommands
 </UL>
 
-<P><STRONG><a name="[10f]"></a>strcmp</STRONG> (Thumb, 128 bytes, Stack size 0 bytes, strcmpv7m.o(.text))
+<P><STRONG><a name="[10e]"></a>strcmp</STRONG> (Thumb, 128 bytes, Stack size 0 bytes, strcmpv7m.o(.text))
 <BR><BR>[Called By]<UL><LI><a href="#[10c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ProcessCommand
 <LI><a href="#[7e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;_get_lc_ctype
 <LI><a href="#[98]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;_get_lc_numeric
@@ -2167,19 +2167,21 @@ Global Symbols
 <LI><a href="#[ec]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Blank
 </UL>
 <BR>[Called By]<UL><LI><a href="#[9e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;main
+<LI><a href="#[10c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ProcessCommand
 </UL>
 
-<P><STRONG><a name="[10c]"></a>ProcessCommand</STRONG> (Thumb, 3056 bytes, Stack size 16 bytes, finalproject.o(i.ProcessCommand))
+<P><STRONG><a name="[10c]"></a>ProcessCommand</STRONG> (Thumb, 2974 bytes, Stack size 16 bytes, finalproject.o(i.ProcessCommand))
 <BR><BR>[Stack]<UL><LI>Max Depth = 176 + Unknown Stack Size
 <LI>Call Chain = ProcessCommand &rArr; FloatToString &rArr; __2sprintf &rArr; _printf_char_common &rArr; __printf
 </UL>
 <BR>[Calls]<UL><LI><a href="#[112]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;get_temperature
 <LI><a href="#[111]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Uint8ToString
-<LI><a href="#[110]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Uint16ToString
-<LI><a href="#[10d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;UARTStringPut
+<LI><a href="#[10f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Uint16ToString
+<LI><a href="#[110]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;UARTStringPut
+<LI><a href="#[10a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Power_On_Init
 <LI><a href="#[f2]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;FloatToString
-<LI><a href="#[10f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;strcmp
-<LI><a href="#[10e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;strncmp
+<LI><a href="#[10e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;strcmp
+<LI><a href="#[10d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;strncmp
 </UL>
 <BR>[Called By]<UL><LI><a href="#[125]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;UART0_ProcessCommands
 </UL>
@@ -2230,7 +2232,7 @@ Global Symbols
 <LI><a href="#[df]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;SysCtlPeripheralEnable
 <LI><a href="#[fa]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;GPIOPinTypeUART
 <LI><a href="#[e7]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;GPIOPinConfigure
-<LI><a href="#[10d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;UARTStringPut
+<LI><a href="#[110]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;UARTStringPut
 </UL>
 <BR>[Called By]<UL><LI><a href="#[9e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;main
 </UL>
@@ -2272,7 +2274,7 @@ Global Symbols
 <LI><a href="#[c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;SysTickIntHandler
 </UL>
 
-<P><STRONG><a name="[11f]"></a>ShowTime</STRONG> (Thumb, 76 bytes, Stack size 8 bytes, finalproject.o(i.ShowTime))
+<P><STRONG><a name="[11f]"></a>ShowTime</STRONG> (Thumb, 68 bytes, Stack size 8 bytes, finalproject.o(i.ShowTime))
 <BR><BR>[Stack]<UL><LI>Max Depth = 20<LI>Call Chain = ShowTime &rArr; Load_time
 </UL>
 <BR>[Calls]<UL><LI><a href="#[11b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Load_time
@@ -2344,13 +2346,12 @@ Global Symbols
 </UL>
 <BR>[Address Reference Count : 1]<UL><LI> startup_tm4c129.o(RESET)
 </UL>
-<P><STRONG><a name="[125]"></a>UART0_ProcessCommands</STRONG> (Thumb, 76 bytes, Stack size 8 bytes, finalproject.o(i.UART0_ProcessCommands))
+<P><STRONG><a name="[125]"></a>UART0_ProcessCommands</STRONG> (Thumb, 62 bytes, Stack size 8 bytes, finalproject.o(i.UART0_ProcessCommands))
 <BR><BR>[Stack]<UL><LI>Max Depth = 184 + Unknown Stack Size
 <LI>Call Chain = UART0_ProcessCommands &rArr; ProcessCommand &rArr; FloatToString &rArr; __2sprintf &rArr; _printf_char_common &rArr; __printf
 </UL>
 <BR>[Calls]<UL><LI><a href="#[106]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;IntMasterEnable
 <LI><a href="#[104]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;IntMasterDisable
-<LI><a href="#[10d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;UARTStringPut
 <LI><a href="#[126]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;RemoveSpaces
 <LI><a href="#[10c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ProcessCommand
 <LI><a href="#[c1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;strncpy
@@ -2366,7 +2367,7 @@ Global Symbols
 <BR><BR>[Calls]<UL><LI><a href="#[127]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;UARTCharPut
 </UL>
 <BR>[Called By]<UL><LI><a href="#[127]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;UARTCharPut
-<LI><a href="#[10d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;UARTStringPut
+<LI><a href="#[110]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;UARTStringPut
 </UL>
 
 <P><STRONG><a name="[124]"></a>UARTCharsAvail</STRONG> (Thumb, 10 bytes, Stack size 0 bytes, uart.o(i.UARTCharsAvail))
@@ -2392,17 +2393,16 @@ Global Symbols
 <BR><BR>[Called By]<UL><LI><a href="#[12]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;UART0_Handler
 </UL>
 
-<P><STRONG><a name="[10d]"></a>UARTStringPut</STRONG> (Thumb, 24 bytes, Stack size 8 bytes, finalproject.o(i.UARTStringPut))
+<P><STRONG><a name="[110]"></a>UARTStringPut</STRONG> (Thumb, 24 bytes, Stack size 8 bytes, finalproject.o(i.UARTStringPut))
 <BR><BR>[Stack]<UL><LI>Max Depth = 8<LI>Call Chain = UARTStringPut
 </UL>
 <BR>[Calls]<UL><LI><a href="#[127]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;UARTCharPut
 </UL>
-<BR>[Called By]<UL><LI><a href="#[125]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;UART0_ProcessCommands
-<LI><a href="#[118]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;S800_UART_Init
+<BR>[Called By]<UL><LI><a href="#[118]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;S800_UART_Init
 <LI><a href="#[10c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ProcessCommand
 </UL>
 
-<P><STRONG><a name="[110]"></a>Uint16ToString</STRONG> (Thumb, 20 bytes, Stack size 16 bytes, finalproject.o(i.Uint16ToString))
+<P><STRONG><a name="[10f]"></a>Uint16ToString</STRONG> (Thumb, 20 bytes, Stack size 16 bytes, finalproject.o(i.Uint16ToString))
 <BR><BR>[Stack]<UL><LI>Max Depth = 152 + Unknown Stack Size
 <LI>Call Chain = Uint16ToString &rArr; __2sprintf &rArr; _printf_char_common &rArr; __printf
 </UL>
@@ -2430,7 +2430,7 @@ Global Symbols
 <BR><BR>[Called By]<UL><LI><a href="#[bb]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__printf
 </UL>
 
-<P><STRONG><a name="[112]"></a>get_temperature</STRONG> (Thumb, 104 bytes, Stack size 8 bytes, finalproject.o(i.get_temperature))
+<P><STRONG><a name="[112]"></a>get_temperature</STRONG> (Thumb, 96 bytes, Stack size 8 bytes, finalproject.o(i.get_temperature))
 <BR><BR>[Stack]<UL><LI>Max Depth = 8<LI>Call Chain = get_temperature
 </UL>
 <BR>[Calls]<UL><LI><a href="#[12b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ADCSequenceDataGet
@@ -2441,7 +2441,7 @@ Global Symbols
 <BR>[Called By]<UL><LI><a href="#[10c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ProcessCommand
 </UL>
 
-<P><STRONG><a name="[9e]"></a>main</STRONG> (Thumb, 2042 bytes, Stack size 8 bytes, finalproject.o(i.main))
+<P><STRONG><a name="[9e]"></a>main</STRONG> (Thumb, 2018 bytes, Stack size 8 bytes, finalproject.o(i.main))
 <BR><BR>[Stack]<UL><LI>Max Depth = 192 + Unknown Stack Size
 <LI>Call Chain = main &rArr; UART0_ProcessCommands &rArr; ProcessCommand &rArr; FloatToString &rArr; __2sprintf &rArr; _printf_char_common &rArr; __printf
 </UL>
@@ -2480,7 +2480,7 @@ Global Symbols
 <P><STRONG><a name="[98]"></a>_get_lc_numeric</STRONG> (Thumb, 44 bytes, Stack size 8 bytes, lc_numeric_c.o(locale$$code))
 <BR><BR>[Stack]<UL><LI>Max Depth = 8<LI>Call Chain = _get_lc_numeric
 </UL>
-<BR>[Calls]<UL><LI><a href="#[10f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;strcmp
+<BR>[Calls]<UL><LI><a href="#[10e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;strcmp
 </UL>
 <BR>[Called By]<UL><LI><a href="#[97]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__rt_lib_init_lc_numeric_2
 </UL>
@@ -2488,7 +2488,7 @@ Global Symbols
 <P><STRONG><a name="[7e]"></a>_get_lc_ctype</STRONG> (Thumb, 44 bytes, Stack size 8 bytes, lc_ctype_c.o(locale$$code))
 <BR><BR>[Stack]<UL><LI>Max Depth = 8<LI>Call Chain = _get_lc_ctype
 </UL>
-<BR>[Calls]<UL><LI><a href="#[10f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;strcmp
+<BR>[Calls]<UL><LI><a href="#[10e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;strcmp
 </UL>
 <BR>[Called By]<UL><LI><a href="#[96]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__rt_lib_init_lc_ctype_2
 </UL>
